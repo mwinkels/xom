@@ -11,23 +11,24 @@ public class MapperFactory {
       Class<T> targetClass) {
     ClassMapperBuilder<S, T> classMapperBuilder = new ClassMapperBuilder<S, T>(sourceClass, targetClass);
     
-    for (PropertyMapperConfig propertyMapperConfig : config.getProperties()) {
+    for (PropertyMapperConfig<ClassMapperConfig> propertyMapperConfig : config.getProperties()) {
       classMapperBuilder.addProperty(fromConfig(classMapperBuilder, converterRegistry, propertyMapperConfig));
     }
     
-    for (ConstructorArgumentMapperConfig constructorArgumentMapperConfig : config.getConstructorArguments()) {
+    for (ConstructorArgumentMapperConfig<ClassMapperConfig> constructorArgumentMapperConfig : config.getConstructorArguments()) {
       classMapperBuilder.addConstructorArgument(fromConfig(classMapperBuilder, converterRegistry, constructorArgumentMapperConfig));
     }
     
     return classMapperBuilder;
   }
   
-  public <S, T> PropertyMapperBuilder fromConfig(ClassMapperBuilder<S, T> classMapperBuilder, ConverterRegistry converterRegistry, PropertyMapperConfig config) {
-    return new PropertyMapperBuilder(classMapperBuilder, converterRegistry, config.getSource(), config.getTarget(), config.getConverter());
+  public <S, T> PropertyMapperBuilder fromConfig(ClassMapperBuilder<S, T> builder, ConverterRegistry converterRegistry,
+      PropertyMapperConfig<?> config) {
+    return new PropertyMapperBuilder(builder, converterRegistry, config.getSource(), config.getTarget(), config.getConverter());
   }
   
   public <S, T> ConstructorArgumentMapperBuilder fromConfig(ClassMapperBuilder<S, T> classMapperBuilder, ConverterRegistry converterRegistry,
-      ConstructorArgumentMapperConfig config) {
+      ConstructorArgumentMapperConfig<?> config) {
     return new ConstructorArgumentMapperBuilder(classMapperBuilder, converterRegistry, config.getSource(), config.getIndex(), config.getConverter());
   }
 }

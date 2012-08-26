@@ -2,14 +2,13 @@ package com.xebia.xoc.config;
 
 import com.xebia.xoc.conversion.Converter;
 
-@SuppressWarnings("rawtypes")
-abstract class AbstractElementMapperConfig<T extends AbstractElementMapperConfig> {
+abstract class AbstractElementMapperConfig<C extends AbstractClassMapperConfig<?>, T extends AbstractElementMapperConfig<C, ?>> {
   
-  protected final ClassMapperConfig classMapperConfig;
+  protected final C classMapperConfig;
   private String source;
-  protected Converter converter;
+  protected Converter<?, ?> converter;
   
-  public AbstractElementMapperConfig(ClassMapperConfig classMapperConfig) {
+  public AbstractElementMapperConfig(C classMapperConfig) {
     this.classMapperConfig = classMapperConfig;
   }
   
@@ -18,14 +17,12 @@ abstract class AbstractElementMapperConfig<T extends AbstractElementMapperConfig
     return getThis();
   }
   
-  public T withConverter(Converter converter) {
+  public T withConverter(Converter<?, ?> converter) {
     this.converter = converter;
     return getThis();
   }
   
-  protected abstract T getThis();
-  
-  public ClassMapperConfig add() {
+  public C add() {
     return classMapperConfig;
   }
   
@@ -33,8 +30,14 @@ abstract class AbstractElementMapperConfig<T extends AbstractElementMapperConfig
     return source;
   }
   
-  public Converter getConverter() {
+  public Converter<?, ?> getConverter() {
     return converter;
   }
+
+  public NestedClassMapperConfig<C> withMapper() {
+    return new NestedClassMapperConfig<C>(classMapperConfig);
+  }
+  
+  protected abstract T getThis();
   
 }

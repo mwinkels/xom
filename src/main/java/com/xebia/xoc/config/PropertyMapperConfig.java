@@ -1,10 +1,10 @@
 package com.xebia.xoc.config;
 
-public class PropertyMapperConfig extends AbstractElementMapperConfig<PropertyMapperConfig> {
+public class PropertyMapperConfig<C extends AbstractClassMapperConfig<?>> extends AbstractElementMapperConfig<C, PropertyMapperConfig<C>> {
   
   private String target;
   
-  public PropertyMapperConfig(ClassMapperConfig classMapperConfig) {
+  public PropertyMapperConfig(C classMapperConfig) {
     super(classMapperConfig);
   }
   
@@ -17,7 +17,7 @@ public class PropertyMapperConfig extends AbstractElementMapperConfig<PropertyMa
   }
   
   @Override
-  protected PropertyMapperConfig getThis() {
+  protected PropertyMapperConfig<C> getThis() {
     return this;
   }
   
