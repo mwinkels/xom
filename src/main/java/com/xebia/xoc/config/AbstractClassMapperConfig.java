@@ -15,7 +15,7 @@ import java.util.List;
  * @see ClassMapperConfig
  * @see NestedClassMapperConfig
  */
-abstract class AbstractClassMapperConfig<C extends AbstractClassMapperConfig<?>> {
+public abstract class AbstractClassMapperConfig<C extends AbstractClassMapperConfig<?>> {
   
   private final List<PropertyMapperConfig<C>> properties = new ArrayList<PropertyMapperConfig<C>>();
   private final ArrayList<ConstructorArgumentMapperConfig<C>> constructorArguments = new ArrayList<ConstructorArgumentMapperConfig<C>>();
@@ -59,7 +59,7 @@ abstract class AbstractClassMapperConfig<C extends AbstractClassMapperConfig<?>>
   }
   
   /**
-   * Used to ensure that the contained elements are constructed with the correct containe type (C).
+   * Used to ensure that the contained elements are constructed with the correct container type (C).
    * 
    * @return this.
    */

@@ -2,15 +2,19 @@ package com.xebia.xoc.javassist;
 
 import java.util.LinkedList;
 
+import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
+import javassist.CtField;
 import javassist.CtMethod;
 import javassist.CtPrimitiveType;
+import javassist.Modifier;
 import javassist.NotFoundException;
 import javassist.bytecode.Bytecode;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.xebia.xoc.ClassMapper;
 import com.xebia.xoc.conversion.Converter;
 import com.xebia.xoc.conversion.ConverterRegistry;
 
@@ -21,12 +25,31 @@ abstract class AbstractElementMapperBuilder {
   protected final ConverterRegistry converterRegistry;
   protected Converter converter;
   private final String source;
+  protected final ClassMapperBuilder nestedClassMapperBuilder;
+  private ClassMapper<?, ?> classMapper;
   
-  public AbstractElementMapperBuilder(ClassMapperBuilder classMapperBuilder, ConverterRegistry converterRegistry, String source, Converter converter) {
+  public AbstractElementMapperBuilder(ClassMapperBuilder classMapperBuilder, ConverterRegistry converterRegistry, String source, Converter converter,
+      ClassMapperBuilder nestedClassMapperBuilder) {
     this.classMapperBuilder = classMapperBuilder;
     this.converterRegistry = converterRegistry;
     this.source = source;
     this.converter = converter;
+    this.nestedClassMapperBuilder = nestedClassMapperBuilder;
+  }
+  
+  public void addFields(MapperBuilderContext context) throws CannotCompileException, NotFoundException {
+    if (hasConverter()) {
+      addField(context.mapperClass, context.classPool.get("com.xebia.xoc.conversion.Converter"), getConverterFieldName());
+    }
+    if (hasMapper()) {
+      addField(context.mapperClass, context.classPool.get("com.xebia.xoc.ClassMapper"), getMapperFieldName());
+    }
+  }
+  
+  private void addField(CtClass mapperClass, CtClass type, String fieldName) throws CannotCompileException {
+    CtField field = new CtField(type, fieldName, mapperClass);
+    field.setModifiers(Modifier.PUBLIC);
+    mapperClass.addField(field);
   }
   
   final static class GetterDef {
@@ -52,12 +75,14 @@ abstract class AbstractElementMapperBuilder {
   
   protected LinkedList<GetterDef> findGetterChain(CtClass currentCtClass) throws NotFoundException {
     LinkedList<GetterDef> getterChain = new LinkedList<GetterDef>();
-    String[] parts = getSource().split("\\.");
-    for (String getterName : parts) {
-      CtMethod getterMethod = findGetterMethod(currentCtClass, getterName);
-      checkGetterSignature(getterMethod);
-      getterChain.add(new GetterDef(currentCtClass, getterMethod));
-      currentCtClass = getterMethod.getReturnType();
+    if (source != null) {
+      String[] parts = source.split("\\.");
+      for (String getterName : parts) {
+        CtMethod getterMethod = findGetterMethod(currentCtClass, getterName);
+        checkGetterSignature(getterMethod);
+        getterChain.add(new GetterDef(currentCtClass, getterMethod));
+        currentCtClass = getterMethod.getReturnType();
+      }
     }
     return getterChain;
   }
@@ -104,6 +129,21 @@ abstract class AbstractElementMapperBuilder {
     }
   }
   
+  protected void prepareInvokeMapper(Bytecode bytecode, CtClass mapperClass) {
+    if (hasMapper()) {
+      bytecode.addAload(0);
+      bytecode.addGetfield(mapperClass, getMapperFieldName(), "Lcom/xebia/xoc/ClassMapper;");
+    }
+  }
+  
+  protected void invokeMapper(Bytecode bytecode, ClassPool classPool, CtClass targetTypeType) throws NotFoundException {
+    if (hasMapper()) {
+      CtClass objectType = classPool.get("java.lang.Object");
+      bytecode.addInvokeinterface(classPool.get("com.xebia.xoc.ClassMapper"), "map", objectType, new CtClass[] { objectType }, 2);
+      bytecode.addCheckcast(targetTypeType);
+    }
+  }
+  
   protected CtMethod findGetterMethod(CtClass sourceCtClass, String property) {
     String getterName1 = "get" + StringUtils.capitalize(property);
     String getterName2 = "is" + StringUtils.capitalize(property);
@@ -121,14 +161,6 @@ abstract class AbstractElementMapperBuilder {
     throw new RuntimeException("method not found");
   }
   
-  protected CtClass sourceCtClass(ClassPool classPool) throws NotFoundException {
-    return classPool.get(classMapperBuilder.getSourceClass().getName());
-  }
-  
-  protected CtClass targetCtClass(ClassPool classPool) throws NotFoundException {
-    return classPool.get(classMapperBuilder.getTargetClass().getName());
-  }
-  
   public boolean hasConverter() {
     return converter != null;
   }
@@ -137,10 +169,34 @@ abstract class AbstractElementMapperBuilder {
     return converter;
   }
   
-  public abstract String getConverterFieldName();
+  public String getConverterFieldName() {
+    return getName("Converter");
+  }
   
-  public String getSource() {
-    return source;
+  public boolean hasMapper() {
+    return nestedClassMapperBuilder != null;
+  }
+  
+  public String getMapperFieldName() {
+    return getName("Mapper");
+  }
+  
+  protected void createNestedMapper(MapperBuilderContext context, CtClass sourceType, CtClass targetType) throws NotFoundException, CannotCompileException,
+  InstantiationException, IllegalAccessException {
+    if (hasMapper()) {
+      CtClass nestedMapperClass = context.mapperClass.makeNestedClass(StringUtils.capitalize(getName("Mapper")), true);
+      classMapper = nestedClassMapperBuilder.build(nestedMapperClass, context.classPool, sourceType, targetType);
+    }
+  }
+  
+  public ClassMapper<?, ?> getClassMapper() {
+    return classMapper;
+  }
+  
+  protected abstract String getName(String suffix);
+
+  protected CtClass getLastGetterType(LinkedList<GetterDef> getterChain, CtClass sourceType) throws NotFoundException {
+    return getterChain.isEmpty() ? sourceType : getterChain.getLast().ctMethod.getReturnType();
   }
   
 }

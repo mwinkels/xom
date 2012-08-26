@@ -47,7 +47,7 @@ public class ConfigurableMapper implements Mapper {
   }
   
   public <S, T> ClassMapper<S, T> withMapper(ClassMapperConfig classMapperConfig, Class<S> sourceClass, Class<T> targetClass) {
-    ClassMapper<S, T> classMapper = mapperFactory.fromConfig(classMapperConfig, converterRegistry, sourceClass, targetClass).build();
+    ClassMapper<S, T> classMapper = mapperFactory.fromConfig(classMapperConfig, converterRegistry).build(sourceClass, targetClass);
     classMappers.add(new ClassMapperEntry<S, T>(classMapper, sourceClass, targetClass));
     return classMapper;
   }

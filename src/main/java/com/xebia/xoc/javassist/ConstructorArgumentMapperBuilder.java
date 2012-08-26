@@ -2,10 +2,9 @@ package com.xebia.xoc.javassist;
 
 import java.util.LinkedList;
 
-import javassist.ClassPool;
+import javassist.CannotCompileException;
 import javassist.CtClass;
 import javassist.NotFoundException;
-import javassist.bytecode.Bytecode;
 
 import com.xebia.xoc.conversion.Converter;
 import com.xebia.xoc.conversion.ConverterRegistry;
@@ -16,26 +15,29 @@ public class ConstructorArgumentMapperBuilder extends AbstractElementMapperBuild
   
   @SuppressWarnings("rawtypes")
   public ConstructorArgumentMapperBuilder(ClassMapperBuilder classMapperBuilder, ConverterRegistry converterRegistry, String source, int index,
-      Converter converter) {
-    super(classMapperBuilder, converterRegistry, source, converter);
+      Converter converter, ClassMapperBuilder nestedClassMapperBuilder) {
+    super(classMapperBuilder, converterRegistry, source, converter, nestedClassMapperBuilder);
     this.index = index;
   }
   
   @Override
-  public String getConverterFieldName() {
-    return "ca" + index + "Converter";
+  protected String getName(String suffix) {
+    return "ca" + index + suffix;
   }
   
-  public void addToBytecode(Bytecode bytecode, ClassPool classPool, CtClass targetType, CtClass mapperCtClass) throws NotFoundException {
-    CtClass sourceCtClass = sourceCtClass(classPool);
-    LinkedList<GetterDef> getterChain = findGetterChain(sourceCtClass);
+  public void addToBytecode(MapperBuilderContext context, CtClass targetType) throws NotFoundException, CannotCompileException, InstantiationException, IllegalAccessException {
+    LinkedList<GetterDef> getterChain = findGetterChain(context.sourceClass);
     
-    findConverterIfRequired(getterChain.getLast().ctMethod.getReturnType(), targetType);
+    CtClass finalSourceType = getLastGetterType(getterChain, context.sourceClass);
+    findConverterIfRequired(finalSourceType, targetType);
+    createNestedMapper(context, finalSourceType, targetType);
     
-    prepareInvokeConverter(bytecode, mapperCtClass);
-    prepareInvokeGetter(bytecode, sourceCtClass);
-    invokeGetterChain(bytecode, getterChain);
-    invokeConverter(bytecode, classPool, targetType);
+    prepareInvokeMapper(context.bytecode, context.mapperClass);
+    prepareInvokeConverter(context.bytecode, context.mapperClass);
+    prepareInvokeGetter(context.bytecode, context.sourceClass);
+    invokeGetterChain(context.bytecode, getterChain);
+    invokeConverter(context.bytecode, context.classPool, targetType);
+    invokeMapper(context.bytecode, context.classPool, targetType);
   }
   
 }

@@ -2,7 +2,7 @@ package com.xebia.xoc.javassist;
 
 import java.util.LinkedList;
 
-import javassist.ClassPool;
+import javassist.CannotCompileException;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.NotFoundException;
@@ -17,32 +17,33 @@ public class PropertyMapperBuilder extends AbstractElementMapperBuilder {
   
   private final String target;
   
-  @SuppressWarnings("rawtypes")
   public PropertyMapperBuilder(ClassMapperBuilder classMapperBuilder, ConverterRegistry converterRegistry, String source, String target,
-      Converter converter) {
-    super(classMapperBuilder, converterRegistry, source, converter);
+      Converter<?,?> converter, ClassMapperBuilder nestedClassMapperBuilder) {
+    super(classMapperBuilder, converterRegistry, source, converter, nestedClassMapperBuilder);
     this.target = target;
   }
   
-  public void addToBytecode(Bytecode bytecode, ClassPool classPool, CtClass mapperCtClass) throws NotFoundException {
-    CtClass sourceCtClass = sourceCtClass(classPool);
-    LinkedList<GetterDef> getterChain = findGetterChain(sourceCtClass);
+  public void addToBytecode(MapperBuilderContext context) throws NotFoundException, CannotCompileException, InstantiationException, IllegalAccessException {
+    LinkedList<GetterDef> getterChain = findGetterChain(context.sourceClass);
     
-    CtClass targetCtClass = targetCtClass(classPool);
-    CtMethod setterMethod = findSetterMethod(targetCtClass);
+    CtMethod setterMethod = findSetterMethod(context.targetClass);
     checkSetterSignature(setterMethod);
     CtClass targetType = setterMethod.getParameterTypes()[0];
     
-    findConverterIfRequired(getterChain.getLast().ctMethod.getReturnType(), targetType);
+    CtClass finalSourceType = getLastGetterType(getterChain, context.sourceClass);
+    findConverterIfRequired(finalSourceType, targetType);
     
-    bytecode.addAload(2);
-    prepareInvokeConverter(bytecode, mapperCtClass);
-    prepareInvokeGetter(bytecode, sourceCtClass);
-    invokeGetterChain(bytecode, getterChain);
-    invokeConverter(bytecode, classPool, targetType);
-    invokeSetter(bytecode, targetCtClass, setterMethod);
+    createNestedMapper(context, finalSourceType, targetType);
+    context.bytecode.addAload(2);
+    prepareInvokeMapper(context.bytecode, context.mapperClass);
+    prepareInvokeConverter(context.bytecode, context.mapperClass);
+    prepareInvokeGetter(context.bytecode, context.sourceClass);
+    invokeGetterChain(context.bytecode, getterChain);
+    invokeConverter(context.bytecode, context.classPool, targetType);
+    invokeMapper(context.bytecode, context.classPool, targetType);
+    invokeSetter(context.bytecode, context.targetClass, setterMethod);
   }
-  
+
   private void invokeSetter(Bytecode bytecode, CtClass targetCtClass, CtMethod setterMethod) throws NotFoundException {
     bytecode.addInvokevirtual(targetCtClass, setterMethod.getName(), CtClass.voidType, setterMethod.getParameterTypes());
   }
@@ -64,8 +65,8 @@ public class PropertyMapperBuilder extends AbstractElementMapperBuilder {
   }
   
   @Override
-  public String getConverterFieldName() {
-    return getTarget() + "Converter";
+  protected String getName(String suffix) {
+    return getTarget() + suffix;
   }
   
 }
