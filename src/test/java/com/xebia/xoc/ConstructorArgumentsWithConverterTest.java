@@ -7,8 +7,6 @@ import static org.junit.Assert.assertThat;
 import org.junit.Test;
 
 import com.xebia.xoc.config.ClassMapperConfig;
-import com.xebia.xoc.conversion.ConversionException;
-import com.xebia.xoc.conversion.Converter;
 
 public class ConstructorArgumentsWithConverterTest {
 	
@@ -70,21 +68,6 @@ public class ConstructorArgumentsWithConverterTest {
 		assertThat(target, is(notNullValue()));
 		assertThat(target.getB(), is(source.getA()));
 		assertThat(target.getD(), is(Integer.parseInt(source.getS())));
-	}
-	
-	private static class MyMapper implements ClassMapper<Object, Target> {
-		
-		public Converter arg0Converter;
-
-		@Override
-		public Target map(Object source) {
-			try {
-				return new Target(((Source) source).getA(), (Integer) arg0Converter.convert(((Source) source).getS()));
-			} catch (ConversionException e) {
-				return null;
-			}
-		}
-		
 	}
 	
 }

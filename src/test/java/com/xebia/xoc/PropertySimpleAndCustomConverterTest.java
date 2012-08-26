@@ -22,7 +22,7 @@ public class PropertySimpleAndCustomConverterTest {
 		@Override
 		public Date convert(String value) throws ConversionException {
 			try {
-				return new SimpleDateFormat("dd/mm/yyyy").parse(value);
+				return new SimpleDateFormat("dd/MM/yyyy").parse(value);
 			} catch (ParseException e) {
 				throw new ConversionException("Cannot convert date.", e);
 			}
@@ -90,11 +90,11 @@ public class PropertySimpleAndCustomConverterTest {
 		assertThat(mapper, is(notNullValue()));
 		Source source = new Source();
 		source.setA(12);
-		source.setS("01/01/2012");
+		source.setS("01/02/2012");
 		Target target = mapper.map(source);
 		assertThat(target, is(notNullValue()));
 		assertThat(target.getB(), is(Integer.toString(source.getA())));
-		assertThat(target.getD(), is(new Date(112, Calendar.JANUARY,1,0,1,0)));
+		assertThat(target.getD(), is(new Date(112, Calendar.FEBRUARY,1)));
 	}
 	
 }
