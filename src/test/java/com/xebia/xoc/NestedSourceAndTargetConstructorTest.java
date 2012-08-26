@@ -6,7 +6,6 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
-import com.xebia.xoc.NestedSourceAndTargetTest.SourceNested;
 import com.xebia.xoc.config.ClassMapperConfig;
 
 public class NestedSourceAndTargetConstructorTest {
