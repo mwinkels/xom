@@ -42,7 +42,7 @@ public class PropertyMapperBuilder extends AbstractElementMapperBuilder {
     invokeConverter(bytecode, classPool, targetType);
     invokeSetter(bytecode, targetCtClass, setterMethod);
   }
-
+  
   private void invokeSetter(Bytecode bytecode, CtClass targetCtClass, CtMethod setterMethod) throws NotFoundException {
     bytecode.addInvokevirtual(targetCtClass, setterMethod.getName(), CtClass.voidType, setterMethod.getParameterTypes());
   }
@@ -58,7 +58,7 @@ public class PropertyMapperBuilder extends AbstractElementMapperBuilder {
       throw new RuntimeException("Setter has incorrect number of parameters!");
     }
   }
-
+  
   public String getTarget() {
     return target;
   }

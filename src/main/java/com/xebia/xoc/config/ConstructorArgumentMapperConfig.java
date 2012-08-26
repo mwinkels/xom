@@ -1,6 +1,13 @@
 package com.xebia.xoc.config;
 
-public class ConstructorArgumentMapperConfig<C extends AbstractClassMapperConfig<?>> extends AbstractElementMapperConfig<C, ConstructorArgumentMapperConfig<C>> {
+/**
+ * Configuration for mapping a constructor argument.
+ * 
+ * @author mwinkels@xebia.com
+ * @param <C> the type of the container of this constructor argument.
+ */
+public class ConstructorArgumentMapperConfig<C extends AbstractClassMapperConfig<?>> extends
+    AbstractElementMapperConfig<C, ConstructorArgumentMapperConfig<C>> {
   
   private final int index;
   
@@ -9,13 +16,13 @@ public class ConstructorArgumentMapperConfig<C extends AbstractClassMapperConfig
     this.index = index;
   }
   
+  public int getIndex() {
+    return index;
+  }
+  
   @Override
   protected ConstructorArgumentMapperConfig<C> getThis() {
     return this;
-  }
-  
-  public int getIndex() {
-    return index;
   }
   
 }

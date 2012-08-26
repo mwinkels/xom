@@ -32,6 +32,7 @@ abstract class AbstractElementMapperBuilder {
   final static class GetterDef {
     final CtClass ctClass;
     final CtMethod ctMethod;
+    
     GetterDef(CtClass ctClass, CtMethod ctMethod) {
       this.ctClass = ctClass;
       this.ctMethod = ctMethod;
@@ -70,7 +71,7 @@ abstract class AbstractElementMapperBuilder {
   protected void invokeGetter(Bytecode bytecode, CtClass sourceCtClass, CtMethod getterMethod) throws NotFoundException {
     bytecode.addInvokevirtual(sourceCtClass, getterMethod.getName(), getterMethod.getReturnType(), getterMethod.getParameterTypes());
   }
-
+  
   protected void prepareInvokeConverter(Bytecode bytecode, CtClass mapperClass) {
     if (hasConverter()) {
       bytecode.addAload(0);
@@ -141,5 +142,5 @@ abstract class AbstractElementMapperBuilder {
   public String getSource() {
     return source;
   }
-
+  
 }

@@ -1,5 +1,11 @@
 package com.xebia.xoc.config;
 
+/**
+ * Configuration for a mapping a property.
+ * 
+ * @author mwinkels@xebia.com
+ * @param <C> The container type of this element.
+ */
 public class PropertyMapperConfig<C extends AbstractClassMapperConfig<?>> extends AbstractElementMapperConfig<C, PropertyMapperConfig<C>> {
   
   private String target;
