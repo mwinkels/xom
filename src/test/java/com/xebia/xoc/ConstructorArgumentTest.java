@@ -8,47 +8,46 @@ import org.junit.Test;
 
 import com.xebia.xoc.config.ClassMapperConfig;
 
-public class MapperBuilderPropertySimpleConverterTest {
+public class ConstructorArgumentTest {
 	
 	public static class Source {
 	
-		private Integer a;
+		private int a;
 		
-		public Integer getA() {
+		public int getA() {
 			return a;
 		}
 		
-		public void setA(Integer a) {
+		public void setA(int a) {
 			this.a = a;
 		}
 	}
 	
 	public static class Target {
 		
-		private String b;
+		private final int b;
+		
+		public Target(int b) {
+			this.b = b;
+		}
 
-		public String getB() {
+		public int getB() {
 			return b;
 		}
 
-		public void setB(String b) {
-			this.b = b;
-		}
-		
-		
 	}
 
 	@Test
 	public void shouldCreateMapper() {
-		ClassMapperConfig config = new ClassMapperConfig().property("b").from("a").add();
+		ClassMapperConfig config = new ClassMapperConfig()//
+				.constructorArg(0).from("a").add();
 		ClassMapper<Source, Target> mapper = new ConfigurableMapper().withMapper(config, Source.class, Target.class);
 		assertThat(mapper, is(notNullValue()));
 		Source source = new Source();
 		source.setA(12);
 		Target target = mapper.map(source);
 		assertThat(target, is(notNullValue()));
-		assertThat(target.getB(), is(Integer.toString(source.getA())));
+		assertThat(target.getB(), is(source.getA()));
 	}
-	
 	
 }

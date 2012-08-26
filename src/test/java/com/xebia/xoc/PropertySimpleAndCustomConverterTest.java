@@ -15,7 +15,7 @@ import com.xebia.xoc.config.ClassMapperConfig;
 import com.xebia.xoc.conversion.ConversionException;
 import com.xebia.xoc.conversion.Converter;
 
-public class MapperBuilderPropertySimpleAndCustomConverterTest {
+public class PropertySimpleAndCustomConverterTest {
 	
 	public class StringToDateConverter implements Converter<String, Date>{
 

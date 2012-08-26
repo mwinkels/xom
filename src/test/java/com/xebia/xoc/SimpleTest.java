@@ -8,7 +8,7 @@ import org.junit.Test;
 
 import com.xebia.xoc.config.ClassMapperConfig;
 
-public class MapperBuilderSimpleTest {
+public class SimpleTest {
 	
 	public static class Source {
 		

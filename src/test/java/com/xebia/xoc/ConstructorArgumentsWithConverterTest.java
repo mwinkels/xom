@@ -10,7 +10,7 @@ import com.xebia.xoc.config.ClassMapperConfig;
 import com.xebia.xoc.conversion.ConversionException;
 import com.xebia.xoc.conversion.Converter;
 
-public class MapperBuilderConstructorArgumentsWithConverterTest {
+public class ConstructorArgumentsWithConverterTest {
 	
 	public static class Source {
 	
