@@ -22,8 +22,7 @@ public class MapperFactory {
     return classMapperBuilder;
   }
   
-  public <S, T> PropertyMapperBuilder fromConfig(ClassMapperBuilder<S, T> classMapperBuilder, ConverterRegistry converterRegistry,
-      PropertyMapperConfig config) {
+  public <S, T> PropertyMapperBuilder fromConfig(ClassMapperBuilder<S, T> classMapperBuilder, ConverterRegistry converterRegistry, PropertyMapperConfig config) {
     return new PropertyMapperBuilder(classMapperBuilder, converterRegistry, config.getSource(), config.getTarget(), config.getConverter());
   }
   

@@ -1,8 +1,9 @@
 package com.xebia.xoc.javassist;
 
+import java.util.LinkedList;
+
 import javassist.ClassPool;
 import javassist.CtClass;
-import javassist.CtMethod;
 import javassist.NotFoundException;
 import javassist.bytecode.Bytecode;
 
@@ -27,12 +28,13 @@ public class ConstructorArgumentMapperBuilder extends AbstractElementMapperBuild
   
   public void addToBytecode(Bytecode bytecode, ClassPool classPool, CtClass targetType, CtClass mapperCtClass) throws NotFoundException {
     CtClass sourceCtClass = sourceCtClass(classPool);
-    CtMethod getterMethod = findGetterMethod(sourceCtClass);
+    LinkedList<GetterDef> getterChain = findGetterChain(sourceCtClass);
     
-    findConverterIfRequired(getterMethod.getReturnType(), targetType);
+    findConverterIfRequired(getterChain.getLast().ctMethod.getReturnType(), targetType);
     
-    prepareConverter(bytecode, mapperCtClass);
-    invokeGetter(bytecode, sourceCtClass, getterMethod);
+    prepareInvokeConverter(bytecode, mapperCtClass);
+    prepareInvokeGetter(bytecode, sourceCtClass);
+    invokeGetterChain(bytecode, getterChain);
     invokeConverter(bytecode, classPool, targetType);
   }
   

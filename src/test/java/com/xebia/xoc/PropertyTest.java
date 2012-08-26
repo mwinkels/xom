@@ -50,16 +50,4 @@ public class PropertyTest {
 		assertThat(target.getB(), is(source.getA()));
 	}
 	
-	public class MyMapper implements ClassMapper<Object, Target> {
-
-		@Override
-		public Target map(Object source) {
-			Target target = new Target();
-			target.setB(((Source) source).getA());
-			return target;
-		}
-		
-	}
-	
-	
 }

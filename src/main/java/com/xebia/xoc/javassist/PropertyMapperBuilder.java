@@ -1,5 +1,7 @@
 package com.xebia.xoc.javassist;
 
+import java.util.LinkedList;
+
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
@@ -22,23 +24,26 @@ public class PropertyMapperBuilder extends AbstractElementMapperBuilder {
     this.target = target;
   }
   
-  void addToBytecode(Bytecode bytecode, ClassPool classPool, CtClass mapperCtClass) throws NotFoundException {
+  public void addToBytecode(Bytecode bytecode, ClassPool classPool, CtClass mapperCtClass) throws NotFoundException {
     CtClass sourceCtClass = sourceCtClass(classPool);
-    CtMethod getterMethod = findGetterMethod(sourceCtClass);
+    LinkedList<GetterDef> getterChain = findGetterChain(sourceCtClass);
     
     CtClass targetCtClass = targetCtClass(classPool);
     CtMethod setterMethod = findSetterMethod(targetCtClass);
-    
-    checkGetterAndSetter(getterMethod, setterMethod);
-    
+    checkSetterSignature(setterMethod);
     CtClass targetType = setterMethod.getParameterTypes()[0];
     
-    findConverterIfRequired(getterMethod.getReturnType(), targetType);
+    findConverterIfRequired(getterChain.getLast().ctMethod.getReturnType(), targetType);
     
     bytecode.addAload(2);
-    prepareConverter(bytecode, mapperCtClass);
-    invokeGetter(bytecode, sourceCtClass, getterMethod);
+    prepareInvokeConverter(bytecode, mapperCtClass);
+    prepareInvokeGetter(bytecode, sourceCtClass);
+    invokeGetterChain(bytecode, getterChain);
     invokeConverter(bytecode, classPool, targetType);
+    invokeSetter(bytecode, targetCtClass, setterMethod);
+  }
+
+  private void invokeSetter(Bytecode bytecode, CtClass targetCtClass, CtMethod setterMethod) throws NotFoundException {
     bytecode.addInvokevirtual(targetCtClass, setterMethod.getName(), CtClass.voidType, setterMethod.getParameterTypes());
   }
   
@@ -47,16 +52,13 @@ public class PropertyMapperBuilder extends AbstractElementMapperBuilder {
     return findMethod(targetCtClass, setterName);
   }
   
-  private void checkGetterAndSetter(CtMethod getterMethod, CtMethod setterMethod) throws NotFoundException {
-    if (getterMethod.getParameterTypes().length != 0) {
-      throw new RuntimeException("Getter needs parameters!");
-    }
+  private void checkSetterSignature(CtMethod setterMethod) throws NotFoundException {
     CtClass[] setterParameterTypes = setterMethod.getParameterTypes();
     if (setterParameterTypes.length != 1) {
       throw new RuntimeException("Setter has incorrect number of parameters!");
     }
   }
-  
+
   public String getTarget() {
     return target;
   }

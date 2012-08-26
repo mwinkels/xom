@@ -1,5 +1,7 @@
 package com.xebia.xoc.javassist;
 
+import java.util.LinkedList;
+
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
@@ -27,10 +29,53 @@ abstract class AbstractElementMapperBuilder {
     this.converter = converter;
   }
   
-  protected void invokeGetter(Bytecode bytecode, CtClass sourceCtClass, CtMethod getterMethod) throws NotFoundException {
+  final static class GetterDef {
+    final CtClass ctClass;
+    final CtMethod ctMethod;
+    GetterDef(CtClass ctClass, CtMethod ctMethod) {
+      this.ctClass = ctClass;
+      this.ctMethod = ctMethod;
+    }
+  }
+  
+  protected void prepareInvokeGetter(Bytecode bytecode, CtClass sourceCtClass) {
     bytecode.addAload(1);
     bytecode.addCheckcast(sourceCtClass);
+  }
+  
+  protected void invokeGetterChain(Bytecode bytecode, LinkedList<GetterDef> getterChain) throws NotFoundException {
+    for (GetterDef getterDef : getterChain) {
+      invokeGetter(bytecode, getterDef.ctClass, getterDef.ctMethod);
+    }
+  }
+  
+  protected LinkedList<GetterDef> findGetterChain(CtClass currentCtClass) throws NotFoundException {
+    LinkedList<GetterDef> getterChain = new LinkedList<GetterDef>();
+    String[] parts = getSource().split("\\.");
+    for (String getterName : parts) {
+      CtMethod getterMethod = findGetterMethod(currentCtClass, getterName);
+      checkGetterSignature(getterMethod);
+      getterChain.add(new GetterDef(currentCtClass, getterMethod));
+      currentCtClass = getterMethod.getReturnType();
+    }
+    return getterChain;
+  }
+  
+  private void checkGetterSignature(CtMethod getterMethod) throws NotFoundException {
+    if (getterMethod.getParameterTypes().length != 0) {
+      throw new RuntimeException("Getter needs parameters!");
+    }
+  }
+  
+  protected void invokeGetter(Bytecode bytecode, CtClass sourceCtClass, CtMethod getterMethod) throws NotFoundException {
     bytecode.addInvokevirtual(sourceCtClass, getterMethod.getName(), getterMethod.getReturnType(), getterMethod.getParameterTypes());
+  }
+
+  protected void prepareInvokeConverter(Bytecode bytecode, CtClass mapperClass) {
+    if (hasConverter()) {
+      bytecode.addAload(0);
+      bytecode.addGetfield(mapperClass, getConverterFieldName(), "Lcom/xebia/xoc/conversion/Converter;");
+    }
   }
   
   protected void invokeConverter(Bytecode bytecode, ClassPool classPool, CtClass targetTypeType) throws NotFoundException {
@@ -38,13 +83,6 @@ abstract class AbstractElementMapperBuilder {
       CtClass objectType = classPool.get("java.lang.Object");
       bytecode.addInvokeinterface(classPool.get("com.xebia.xoc.conversion.Converter"), "convert", objectType, new CtClass[] { objectType }, 2);
       bytecode.addCheckcast(targetTypeType);
-    }
-  }
-  
-  protected void prepareConverter(Bytecode bytecode, CtClass mapperClass) {
-    if (hasConverter()) {
-      bytecode.addAload(0);
-      bytecode.addGetfield(mapperClass, getConverterFieldName(), "Lcom/xebia/xoc/conversion/Converter;");
     }
   }
   
@@ -65,9 +103,9 @@ abstract class AbstractElementMapperBuilder {
     }
   }
   
-  protected CtMethod findGetterMethod(CtClass sourceCtClass) {
-    String getterName1 = "get" + StringUtils.capitalize(getSource());
-    String getterName2 = "is" + StringUtils.capitalize(getSource());
+  protected CtMethod findGetterMethod(CtClass sourceCtClass, String property) {
+    String getterName1 = "get" + StringUtils.capitalize(property);
+    String getterName2 = "is" + StringUtils.capitalize(property);
     return findMethod(sourceCtClass, getterName1, getterName2);
   }
   
@@ -103,5 +141,5 @@ abstract class AbstractElementMapperBuilder {
   public String getSource() {
     return source;
   }
-  
+
 }
