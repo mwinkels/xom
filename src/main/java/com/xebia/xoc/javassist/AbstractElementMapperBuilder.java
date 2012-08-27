@@ -68,7 +68,7 @@ abstract class AbstractElementMapperBuilder {
 
   protected void invokeGetterChain(MapperBuilderContext context, LinkedList<GetterDef> getterChain) throws NotFoundException {
     for (GetterDef getterDef : getterChain) {
-      context.invokeGetter(this, getterDef.ctClass, getterDef.ctMethod);
+      context.invokeGetter(getterDef.ctClass, getterDef.ctMethod);
     }
   }
   

@@ -56,7 +56,7 @@ public class MapperBuilderContext {
     bytecode.addCheckcast(targetType);
   }
 
-  protected void invokeGetter(AbstractElementMapperBuilder abstractElementMapperBuilder, CtClass sourceCtClass, CtMethod getterMethod) throws NotFoundException {
+  protected void invokeGetter(CtClass sourceCtClass, CtMethod getterMethod) throws NotFoundException {
     bytecode.addInvokevirtual(sourceCtClass, getterMethod.getName(), getterMethod.getReturnType(), getterMethod.getParameterTypes());
   }
   
