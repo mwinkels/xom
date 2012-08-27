@@ -62,14 +62,13 @@ abstract class AbstractElementMapperBuilder {
     }
   }
   
-  protected void prepareInvokeGetter(Bytecode bytecode, CtClass sourceCtClass) {
-    bytecode.addAload(1);
-    bytecode.addCheckcast(sourceCtClass);
+  protected void prepareInvokeGetter(MapperBuilderContext context) {
+    context.loadAndCheckSource();
   }
-  
-  protected void invokeGetterChain(Bytecode bytecode, LinkedList<GetterDef> getterChain) throws NotFoundException {
+
+  protected void invokeGetterChain(MapperBuilderContext context, LinkedList<GetterDef> getterChain) throws NotFoundException {
     for (GetterDef getterDef : getterChain) {
-      invokeGetter(bytecode, getterDef.ctClass, getterDef.ctMethod);
+      context.invokeGetter(this, getterDef.ctClass, getterDef.ctMethod);
     }
   }
   
@@ -93,27 +92,20 @@ abstract class AbstractElementMapperBuilder {
     }
   }
   
-  protected void invokeGetter(Bytecode bytecode, CtClass sourceCtClass, CtMethod getterMethod) throws NotFoundException {
-    bytecode.addInvokevirtual(sourceCtClass, getterMethod.getName(), getterMethod.getReturnType(), getterMethod.getParameterTypes());
-  }
-  
-  protected void prepareInvokeConverter(Bytecode bytecode, CtClass mapperClass) {
+  protected void prepareInvokeConverter(MapperBuilderContext context) {
     if (hasConverter()) {
-      bytecode.addAload(0);
-      bytecode.addGetfield(mapperClass, getConverterFieldName(), "Lcom/xebia/xoc/conversion/Converter;");
+      context.loadField(getConverterFieldName(), "Lcom/xebia/xoc/conversion/Converter;");
     }
   }
   
-  protected void invokeConverter(Bytecode bytecode, ClassPool classPool, CtClass targetTypeType) throws NotFoundException {
+  protected void invokeConverter(MapperBuilderContext context, CtClass targetType) throws NotFoundException {
     if (hasConverter()) {
-      CtClass objectType = classPool.get("java.lang.Object");
-      bytecode.addInvokeinterface(classPool.get("com.xebia.xoc.conversion.Converter"), "convert", objectType, new CtClass[] { objectType }, 2);
-      bytecode.addCheckcast(targetTypeType);
+      context.invokeTransformMethod("com.xebia.xoc.conversion.Converter", "convert", targetType);
     }
   }
-  
+
   @SuppressWarnings("unchecked")
-  protected void findConverterIfRequired(CtClass sourceType, CtClass targetType) {
+  protected void findMapperOrConverterIfRequired(CtClass sourceType, CtClass targetType) {
     boolean typesDiffer = !targetType.equals(sourceType);
     if (typesDiffer && classMapper == null) {
       classMapper = mapperRegistry.findClassMapper(asClass(sourceType), asClass(targetType));
@@ -137,18 +129,15 @@ abstract class AbstractElementMapperBuilder {
     }
   }
   
-  protected void prepareInvokeMapper(Bytecode bytecode, CtClass mapperClass) {
+  protected void prepareInvokeMapper(MapperBuilderContext context) {
     if (hasMapper()) {
-      bytecode.addAload(0);
-      bytecode.addGetfield(mapperClass, getMapperFieldName(), "Lcom/xebia/xoc/ClassMapper;");
+      context.loadField(getMapperFieldName(), "Lcom/xebia/xoc/ClassMapper;");
     }
   }
-  
-  protected void invokeMapper(Bytecode bytecode, ClassPool classPool, CtClass targetTypeType) throws NotFoundException {
+
+  protected void invokeMapper(MapperBuilderContext context, CtClass targetType) throws NotFoundException {
     if (hasMapper()) {
-      CtClass objectType = classPool.get("java.lang.Object");
-      bytecode.addInvokeinterface(classPool.get("com.xebia.xoc.ClassMapper"), "map", objectType, new CtClass[] { objectType }, 2);
-      bytecode.addCheckcast(targetTypeType);
+      context.invokeTransformMethod("com.xebia.xoc.ClassMapper", "map", targetType);
     }
   }
   

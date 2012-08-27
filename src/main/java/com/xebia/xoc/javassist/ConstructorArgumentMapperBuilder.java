@@ -30,15 +30,15 @@ public class ConstructorArgumentMapperBuilder extends AbstractElementMapperBuild
     LinkedList<GetterDef> getterChain = findGetterChain(context.sourceClass);
     
     CtClass finalSourceType = getLastGetterType(getterChain, context.sourceClass);
-    findConverterIfRequired(finalSourceType, targetType);
     createNestedMapper(context, finalSourceType, targetType);
+    findMapperOrConverterIfRequired(finalSourceType, targetType);
     
-    prepareInvokeMapper(context.bytecode, context.mapperClass);
-    prepareInvokeConverter(context.bytecode, context.mapperClass);
-    prepareInvokeGetter(context.bytecode, context.sourceClass);
-    invokeGetterChain(context.bytecode, getterChain);
-    invokeConverter(context.bytecode, context.classPool, targetType);
-    invokeMapper(context.bytecode, context.classPool, targetType);
+    prepareInvokeMapper(context);
+    prepareInvokeConverter(context);
+    prepareInvokeGetter(context);
+    invokeGetterChain(context, getterChain);
+    invokeConverter(context, targetType);
+    invokeMapper(context, targetType);
   }
   
 }

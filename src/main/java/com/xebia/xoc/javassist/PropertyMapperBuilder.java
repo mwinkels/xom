@@ -33,23 +33,18 @@ public class PropertyMapperBuilder extends AbstractElementMapperBuilder {
     
     CtClass finalSourceType = getLastGetterType(getterChain, context.sourceClass);
     createNestedMapper(context, finalSourceType, targetType);
-    findConverterIfRequired(finalSourceType, targetType);
+    findMapperOrConverterIfRequired(finalSourceType, targetType);
     
-    context.bytecode.addAload(2);
-    context.bytecode.addCheckcast(context.targetClass);
-    prepareInvokeMapper(context.bytecode, context.mapperClass);
-    prepareInvokeConverter(context.bytecode, context.mapperClass);
-    prepareInvokeGetter(context.bytecode, context.sourceClass);
-    invokeGetterChain(context.bytecode, getterChain);
-    invokeConverter(context.bytecode, context.classPool, targetType);
-    invokeMapper(context.bytecode, context.classPool, targetType);
-    invokeSetter(context.bytecode, context.targetClass, setterMethod);
+    context.loadAndCheckReturnType();
+    prepareInvokeMapper(context);
+    prepareInvokeConverter(context);
+    prepareInvokeGetter(context);
+    invokeGetterChain(context, getterChain);
+    invokeConverter(context, targetType);
+    invokeMapper(context, targetType);
+    context.invokeSetter(setterMethod);
   }
 
-  private void invokeSetter(Bytecode bytecode, CtClass targetCtClass, CtMethod setterMethod) throws NotFoundException {
-    bytecode.addInvokevirtual(targetCtClass, setterMethod.getName(), CtClass.voidType, setterMethod.getParameterTypes());
-  }
-  
   private CtMethod findSetterMethod(CtClass targetCtClass) {
     String setterName = "set" + StringUtils.capitalize(target);
     return findMethod(targetCtClass, setterName);

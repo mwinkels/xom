@@ -62,7 +62,7 @@ public class ClassMapperBuilder {
     return mapperInstance;
   }
 
-  protected void addCreateMethod(CtClass mapperCtClass, ClassPool classPool, CtClass souceCtClass, CtClass targetCtClass, CtClass superClass) throws NotFoundException, CannotCompileException, InstantiationException, IllegalAccessException {
+  private void addCreateMethod(CtClass mapperCtClass, ClassPool classPool, CtClass souceCtClass, CtClass targetCtClass, CtClass superClass) throws NotFoundException, CannotCompileException, InstantiationException, IllegalAccessException {
     CtMethod createMethod = implementAndGetMethod(mapperCtClass, superClass, "create");
     MethodInfo methodInfo = createMethod.getMethodInfo();
     Bytecode bytecode = new Bytecode(methodInfo.getConstPool(), 0, 2);
@@ -73,7 +73,7 @@ public class ClassMapperBuilder {
     mapperCtClass.addMethod(createMethod);
   }
   
-  protected void addApplyMethod(CtClass mapperCtClass, ClassPool classPool, CtClass souceCtClass, CtClass targetCtClass, CtClass superClass) throws NotFoundException, CannotCompileException, InstantiationException, IllegalAccessException {
+  private void addApplyMethod(CtClass mapperCtClass, ClassPool classPool, CtClass souceCtClass, CtClass targetCtClass, CtClass superClass) throws NotFoundException, CannotCompileException, InstantiationException, IllegalAccessException {
     CtMethod createMethod = implementAndGetMethod(mapperCtClass, superClass, "apply");
     MethodInfo methodInfo = createMethod.getMethodInfo();
     Bytecode bytecode = new Bytecode(methodInfo.getConstPool(), 0, 3 + properties.size());
@@ -84,26 +84,21 @@ public class ClassMapperBuilder {
     mapperCtClass.addMethod(createMethod);
   }
   
-  protected CtMethod implementAndGetMethod(CtClass mapperCtClass, CtClass superClass, String name) throws NotFoundException, CannotCompileException {
+  private CtMethod implementAndGetMethod(CtClass mapperCtClass, CtClass superClass, String name) throws NotFoundException, CannotCompileException {
     CtMethod abstractMethod = superClass.getDeclaredMethod(name);
     CtMethod mapperMethod = new CtMethod(abstractMethod, mapperCtClass, null);
     mapperMethod.setModifiers(mapperMethod.getModifiers() & ~Modifier.ABSTRACT);
     return mapperMethod;
   }
   
-  protected void doCreate(MapperBuilderContext context) throws NotFoundException, CannotCompileException, InstantiationException,
+  private void doCreate(MapperBuilderContext context) throws NotFoundException, CannotCompileException, InstantiationException,
       IllegalAccessException {
-    addCallNew(context.bytecode, context.targetClass);
+    context.newTargetClass();
     CtClass[] paramTypes = handleConstructorArguments(context);
-    addInvokeConstructor(context.bytecode, context.targetClass, paramTypes);
-    addReturn(context);
+    context.invokeConstructor(paramTypes);
+    context.addReturn();
   }
-  
-  private void addCallNew(Bytecode bytecode, CtClass returnClass) {
-    bytecode.addNew(returnClass);
-    bytecode.add(Bytecode.DUP);
-  }
-  
+
   private CtClass[] handleConstructorArguments(MapperBuilderContext context)
       throws NotFoundException, CannotCompileException, InstantiationException, IllegalAccessException {
     if (constructorArguments.isEmpty()) {
@@ -129,23 +124,14 @@ public class ClassMapperBuilder {
   
   private void doApply(MapperBuilderContext context) throws NotFoundException, CannotCompileException, InstantiationException, IllegalAccessException {
     handleProperties(context);
-    context.bytecode.addAload(2);
-    context.bytecode.addCheckcast(context.targetClass);
-    addReturn(context);
+    context.loadAndCheckReturnType();
+    context.addReturn();
   }
 
   private void handleProperties(MapperBuilderContext context) throws NotFoundException, CannotCompileException, InstantiationException, IllegalAccessException {
     for (PropertyMapperBuilder property : properties) {
       property.addToBytecode(context);
     }
-  }
-  
-  private void addInvokeConstructor(Bytecode bytecode, CtClass returnClass, CtClass[] paramTypes) {
-    bytecode.addInvokespecial(returnClass, "<init>", CtClass.voidType, paramTypes);
-  }
-  
-  protected void addReturn(MapperBuilderContext context) {
-    context.bytecode.addReturn(context.targetClass);
   }
   
   private void addFields(CtClass mapperClass, ClassPool classPool, List<? extends AbstractElementMapperBuilder> elements)
