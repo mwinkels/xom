@@ -36,6 +36,7 @@ public class PropertyMapperBuilder extends AbstractElementMapperBuilder {
     findConverterIfRequired(finalSourceType, targetType);
     
     context.bytecode.addAload(2);
+    context.bytecode.addCheckcast(context.targetClass);
     prepareInvokeMapper(context.bytecode, context.mapperClass);
     prepareInvokeConverter(context.bytecode, context.mapperClass);
     prepareInvokeGetter(context.bytecode, context.sourceClass);

@@ -51,5 +51,15 @@ public class ConfigurableMapper implements Mapper {
     classMappers.add(new ClassMapperEntry<S, T>(classMapper, sourceClass, targetClass));
     return classMapper;
   }
+
+  @Override
+  public <S, T> T map(S source, Class<T> target) {
+    return findClassMapper((Class<S>)source.getClass(), target).map(source);
+  }
+
+  @Override
+  public <S, T> T map(S source, T target) {
+    return findClassMapper((Class<S>)source.getClass(), (Class<T>)target.getClass()).map(source, target);
+  }
   
 }

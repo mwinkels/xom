@@ -9,7 +9,7 @@ import org.junit.Test;
 import com.xebia.xoc.config.ClassMapperConfig;
 import com.xebia.xoc.javassist.AbstractClassMapper;
 
-public class PropertyTest {
+public class PropertyWithInstanceTest {
   
   public static class Source {
     
@@ -41,11 +41,11 @@ public class PropertyTest {
   @Test
   public void shouldCreateMapper() {
     ClassMapperConfig config = new ClassMapperConfig().property("b").from("a").add();
-    ClassMapper<Source, Target> mapper = new ConfigurableMapper().withMapper(config, Source.class, Target.class);
-    assertThat(mapper, is(notNullValue()));
+    ConfigurableMapper mapper = new ConfigurableMapper();
+    mapper.withMapper(config, Source.class, Target.class);
     Source source = new Source();
     source.setA(12);
-    Target target = mapper.map(source);
+    Target target = mapper.map(source, new Target());
     assertThat(target, is(notNullValue()));
     assertThat(target.getB(), is(source.getA()));
   }

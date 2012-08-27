@@ -37,12 +37,12 @@ abstract class AbstractElementMapperBuilder {
     this.nestedClassMapperBuilder = nestedClassMapperBuilder;
   }
   
-  protected void addFields(MapperBuilderContext context) throws CannotCompileException, NotFoundException {
+  protected void addFields(CtClass mapperClass, ClassPool classPool) throws CannotCompileException, NotFoundException {
     if (hasConverter()) {
-      addField(context.mapperClass, context.classPool.get("com.xebia.xoc.conversion.Converter"), getConverterFieldName());
+      addField(mapperClass, classPool.get("com.xebia.xoc.conversion.Converter"), getConverterFieldName());
     }
     if (hasMapper()) {
-      addField(context.mapperClass, context.classPool.get("com.xebia.xoc.ClassMapper"), getMapperFieldName());
+      addField(mapperClass, classPool.get("com.xebia.xoc.ClassMapper"), getMapperFieldName());
     }
   }
   
@@ -112,6 +112,7 @@ abstract class AbstractElementMapperBuilder {
     }
   }
   
+  @SuppressWarnings("unchecked")
   protected void findConverterIfRequired(CtClass sourceType, CtClass targetType) {
     boolean typesDiffer = !targetType.equals(sourceType);
     if (typesDiffer && classMapper == null) {
