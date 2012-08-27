@@ -15,29 +15,29 @@ import javassist.bytecode.Bytecode;
 import org.apache.commons.lang.StringUtils;
 
 import com.xebia.xoc.ClassMapper;
+import com.xebia.xoc.ClassMapperRegistry;
 import com.xebia.xoc.conversion.Converter;
 import com.xebia.xoc.conversion.ConverterRegistry;
 
 @SuppressWarnings("rawtypes")
 abstract class AbstractElementMapperBuilder {
   
-  protected final ClassMapperBuilder classMapperBuilder;
-  protected final ConverterRegistry converterRegistry;
-  protected Converter converter;
+  private final ConverterRegistry converterRegistry;
+  private final ClassMapperRegistry mapperRegistry;
   private final String source;
-  protected final ClassMapperBuilder nestedClassMapperBuilder;
+  private final ClassMapperBuilder nestedClassMapperBuilder;
+  private Converter converter;
   private ClassMapper<?, ?> classMapper;
   
-  public AbstractElementMapperBuilder(ClassMapperBuilder classMapperBuilder, ConverterRegistry converterRegistry, String source, Converter converter,
-      ClassMapperBuilder nestedClassMapperBuilder) {
-    this.classMapperBuilder = classMapperBuilder;
+  public AbstractElementMapperBuilder(ConverterRegistry converterRegistry, ClassMapperRegistry mapperRegistry, String source, Converter converter, ClassMapperBuilder nestedClassMapperBuilder) {
     this.converterRegistry = converterRegistry;
+    this.mapperRegistry = mapperRegistry;
     this.source = source;
     this.converter = converter;
     this.nestedClassMapperBuilder = nestedClassMapperBuilder;
   }
   
-  public void addFields(MapperBuilderContext context) throws CannotCompileException, NotFoundException {
+  protected void addFields(MapperBuilderContext context) throws CannotCompileException, NotFoundException {
     if (hasConverter()) {
       addField(context.mapperClass, context.classPool.get("com.xebia.xoc.conversion.Converter"), getConverterFieldName());
     }
@@ -113,7 +113,14 @@ abstract class AbstractElementMapperBuilder {
   }
   
   protected void findConverterIfRequired(CtClass sourceType, CtClass targetType) {
-    if (!targetType.equals(sourceType) && converter == null) {
+    boolean typesDiffer = !targetType.equals(sourceType);
+    if (typesDiffer && classMapper == null) {
+      classMapper = mapperRegistry.findClassMapper(asClass(sourceType), asClass(targetType));
+      if (classMapper != null) {
+        return;
+      }
+    }
+    if (typesDiffer && converter == null) {
       converter = converterRegistry.findConverter(asClass(sourceType), asClass(targetType));
     }
   }
@@ -158,7 +165,7 @@ abstract class AbstractElementMapperBuilder {
         }
       }
     }
-    throw new RuntimeException("method not found");
+    throw new RuntimeException(String.format("method [%s] not found.", names));
   }
   
   public boolean hasConverter() {
@@ -174,7 +181,7 @@ abstract class AbstractElementMapperBuilder {
   }
   
   public boolean hasMapper() {
-    return nestedClassMapperBuilder != null;
+    return classMapper != null || nestedClassMapperBuilder != null;
   }
   
   public String getMapperFieldName() {

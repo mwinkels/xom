@@ -6,6 +6,7 @@ import javassist.CannotCompileException;
 import javassist.CtClass;
 import javassist.NotFoundException;
 
+import com.xebia.xoc.ClassMapperRegistry;
 import com.xebia.xoc.conversion.Converter;
 import com.xebia.xoc.conversion.ConverterRegistry;
 
@@ -14,9 +15,9 @@ public class ConstructorArgumentMapperBuilder extends AbstractElementMapperBuild
   private final int index;
   
   @SuppressWarnings("rawtypes")
-  public ConstructorArgumentMapperBuilder(ClassMapperBuilder classMapperBuilder, ConverterRegistry converterRegistry, String source, int index,
-      Converter converter, ClassMapperBuilder nestedClassMapperBuilder) {
-    super(classMapperBuilder, converterRegistry, source, converter, nestedClassMapperBuilder);
+  public ConstructorArgumentMapperBuilder(ConverterRegistry converterRegistry, ClassMapperRegistry mapperRegistry, String source, int index, Converter converter,
+      ClassMapperBuilder nestedClassMapperBuilder) {
+    super(converterRegistry, mapperRegistry, source, converter, nestedClassMapperBuilder);
     this.index = index;
   }
   

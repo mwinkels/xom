@@ -10,6 +10,7 @@ import javassist.bytecode.Bytecode;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.xebia.xoc.ClassMapperRegistry;
 import com.xebia.xoc.conversion.Converter;
 import com.xebia.xoc.conversion.ConverterRegistry;
 
@@ -17,9 +18,9 @@ public class PropertyMapperBuilder extends AbstractElementMapperBuilder {
   
   private final String target;
   
-  public PropertyMapperBuilder(ClassMapperBuilder classMapperBuilder, ConverterRegistry converterRegistry, String source, String target,
-      Converter<?,?> converter, ClassMapperBuilder nestedClassMapperBuilder) {
-    super(classMapperBuilder, converterRegistry, source, converter, nestedClassMapperBuilder);
+  public PropertyMapperBuilder(ConverterRegistry converterRegistry, ClassMapperRegistry mapperRegistry, String source, String target, Converter<?,?> converter,
+      ClassMapperBuilder nestedClassMapperBuilder) {
+    super(converterRegistry, mapperRegistry, source, converter, nestedClassMapperBuilder);
     this.target = target;
   }
   
@@ -31,9 +32,9 @@ public class PropertyMapperBuilder extends AbstractElementMapperBuilder {
     CtClass targetType = setterMethod.getParameterTypes()[0];
     
     CtClass finalSourceType = getLastGetterType(getterChain, context.sourceClass);
+    createNestedMapper(context, finalSourceType, targetType);
     findConverterIfRequired(finalSourceType, targetType);
     
-    createNestedMapper(context, finalSourceType, targetType);
     context.bytecode.addAload(2);
     prepareInvokeMapper(context.bytecode, context.mapperClass);
     prepareInvokeConverter(context.bytecode, context.mapperClass);
@@ -49,7 +50,7 @@ public class PropertyMapperBuilder extends AbstractElementMapperBuilder {
   }
   
   private CtMethod findSetterMethod(CtClass targetCtClass) {
-    String setterName = "set" + StringUtils.capitalize(getTarget());
+    String setterName = "set" + StringUtils.capitalize(target);
     return findMethod(targetCtClass, setterName);
   }
   
@@ -60,13 +61,9 @@ public class PropertyMapperBuilder extends AbstractElementMapperBuilder {
     }
   }
   
-  public String getTarget() {
-    return target;
-  }
-  
   @Override
   protected String getName(String suffix) {
-    return getTarget() + suffix;
+    return target + suffix;
   }
   
 }

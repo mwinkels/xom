@@ -48,22 +48,28 @@ public class ClassMapperBuilder {
   }
 
   protected <S, T> ClassMapper<S, T> build(CtClass mapperCtClass, ClassPool classPool, CtClass souceCtClass, CtClass targetCtClass) throws NotFoundException, CannotCompileException, InstantiationException, IllegalAccessException {
+    MapperBuilderContext context = addMapMethod(mapperCtClass, classPool, souceCtClass, targetCtClass);
+    addFields(context, constructorArguments);
+    addFields(context, properties);
+    @SuppressWarnings("unchecked")
+    Class<ClassMapper<S, T>> mapperClass = mapperCtClass.toClass();
+    ClassMapper<S, T> mapperInstance = mapperClass.newInstance();
+    setFields(mapperInstance, constructorArguments);
+    setFields(mapperInstance, properties);
+    return mapperInstance;
+  }
+
+  private MapperBuilderContext addMapMethod(CtClass mapperCtClass, ClassPool classPool, CtClass souceCtClass, CtClass targetCtClass)
+      throws NotFoundException, CannotCompileException, InstantiationException, IllegalAccessException {
     CtMethod converterMethod = implementMapMethod(classPool, mapperCtClass);
     MethodInfo methodInfo = converterMethod.getMethodInfo();
     Bytecode bytecode = new Bytecode(methodInfo.getConstPool(), 0, 2 + properties.size());
     MapperBuilderContext context = new MapperBuilderContext(souceCtClass, targetCtClass, mapperCtClass, classPool, bytecode);
     doMap(context);
-    addFields(context, constructorArguments);
-    addFields(context, properties);
     bytecode.setMaxStack(calculateStackSize());
     methodInfo.setCodeAttribute(bytecode.toCodeAttribute());
     mapperCtClass.addMethod(converterMethod);
-    @SuppressWarnings("unchecked")
-    Class<ClassMapper<S, T>> mapperClass = mapperCtClass.toClass();
-    ClassMapper<S, T> mapperInstance = mapperClass.newInstance();
-    setConverterFields(mapperInstance, constructorArguments);
-    setConverterFields(mapperInstance, properties);
-    return mapperInstance;
+    return context;
   }
   
   private CtMethod implementMapMethod(ClassPool classPool, CtClass mapperCtClass) throws NotFoundException, CannotCompileException {
@@ -132,21 +138,21 @@ public class ClassMapperBuilder {
     }
   }
   
-  private void setConverterFields(ClassMapper<?, ?> mapperInstance, List<? extends AbstractElementMapperBuilder> elements)
+  private void setFields(ClassMapper<?, ?> mapperInstance, List<? extends AbstractElementMapperBuilder> elements)
       throws IllegalAccessException {
     for (AbstractElementMapperBuilder element : elements) {
       if (element.hasConverter()) {
-        Field field = getConverterField(mapperInstance, element.getConverterFieldName());
+        Field field = getField(mapperInstance, element.getConverterFieldName());
         field.set(mapperInstance, element.getConverter());
       }
       if (element.hasMapper()) {
-        Field field = getConverterField(mapperInstance, element.getMapperFieldName());
+        Field field = getField(mapperInstance, element.getMapperFieldName());
         field.set(mapperInstance, element.getClassMapper());
       }
     }
   }
   
-  private Field getConverterField(ClassMapper<?, ?> mapperInstance, String fieldName) {
+  private Field getField(ClassMapper<?, ?> mapperInstance, String fieldName) {
     try {
       return mapperInstance.getClass().getDeclaredField(fieldName);
     } catch (SecurityException e) {

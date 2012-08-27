@@ -37,7 +37,7 @@ public class ConfigurableMapper implements Mapper {
   
   @SuppressWarnings("unchecked")
   @Override
-  public <S, T> ClassMapper<S, T> getClassMapper(Class<S> sourceClass, Class<T> targetClass) {
+  public <S, T> ClassMapper<S, T> findClassMapper(Class<S> sourceClass, Class<T> targetClass) {
     for (ClassMapperEntry<?, ?> entry : classMappers) {
       if (entry.canMap(sourceClass, targetClass)) {
         return (ClassMapper<S, T>) entry.classMapper;
@@ -47,7 +47,7 @@ public class ConfigurableMapper implements Mapper {
   }
   
   public <S, T> ClassMapper<S, T> withMapper(ClassMapperConfig classMapperConfig, Class<S> sourceClass, Class<T> targetClass) {
-    ClassMapper<S, T> classMapper = mapperFactory.fromConfig(classMapperConfig, converterRegistry).build(sourceClass, targetClass);
+    ClassMapper<S, T> classMapper = mapperFactory.fromConfig(classMapperConfig, converterRegistry, this).build(sourceClass, targetClass);
     classMappers.add(new ClassMapperEntry<S, T>(classMapper, sourceClass, targetClass));
     return classMapper;
   }
