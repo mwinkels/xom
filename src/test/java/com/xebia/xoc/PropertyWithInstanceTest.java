@@ -7,7 +7,6 @@ import static org.junit.Assert.assertThat;
 import org.junit.Test;
 
 import com.xebia.xoc.config.ClassMapperConfig;
-import com.xebia.xoc.javassist.AbstractClassMapper;
 
 public class PropertyWithInstanceTest {
   

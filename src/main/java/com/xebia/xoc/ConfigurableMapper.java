@@ -7,7 +7,7 @@ import com.xebia.xoc.config.ClassMapperConfig;
 import com.xebia.xoc.conversion.ConverterRegistry;
 import com.xebia.xoc.javassist.MapperFactory;
 
-public class ConfigurableMapper implements Mapper {
+public class ConfigurableMapper extends AbstractMapper {
   
   public class ClassMapperEntry<S, T> {
     
@@ -50,16 +50,6 @@ public class ConfigurableMapper implements Mapper {
     ClassMapper<S, T> classMapper = mapperFactory.fromConfig(classMapperConfig, converterRegistry, this).build(sourceClass, targetClass);
     classMappers.add(new ClassMapperEntry<S, T>(classMapper, sourceClass, targetClass));
     return classMapper;
-  }
-
-  @Override
-  public <S, T> T map(S source, Class<T> target) {
-    return findClassMapper((Class<S>)source.getClass(), target).map(source);
-  }
-
-  @Override
-  public <S, T> T map(S source, T target) {
-    return findClassMapper((Class<S>)source.getClass(), (Class<T>)target.getClass()).map(source, target);
   }
   
 }
