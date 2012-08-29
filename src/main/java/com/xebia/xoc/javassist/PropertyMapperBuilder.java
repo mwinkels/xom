@@ -7,7 +7,6 @@ import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.NotFoundException;
 import javassist.bytecode.BadBytecode;
-import javassist.bytecode.Bytecode;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -15,7 +14,6 @@ import com.xebia.xoc.ClassMapperRegistry;
 import com.xebia.xoc.conversion.Converter;
 import com.xebia.xoc.conversion.ConverterRegistry;
 import com.xebia.xoc.javassist.MapperBuilderContext.ForLoop;
-import com.xebia.xoc.util.BytecodePrinter;
 
 public class PropertyMapperBuilder extends AbstractElementMapperBuilder {
   

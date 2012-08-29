@@ -88,7 +88,6 @@ public class ClassMapperBuilder {
     codeAttribute.computeMaxStack();
     methodInfo.setCodeAttribute(codeAttribute);
     mapperCtClass.addMethod(createMethod);
-    context.dump();
   }
   
   private CtMethod implementAndGetMethod(CtClass mapperCtClass, CtClass superClass, String name) throws NotFoundException, CannotCompileException {
