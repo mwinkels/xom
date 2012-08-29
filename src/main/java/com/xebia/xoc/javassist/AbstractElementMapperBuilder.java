@@ -10,7 +10,7 @@ import javassist.CtMethod;
 import javassist.CtPrimitiveType;
 import javassist.Modifier;
 import javassist.NotFoundException;
-import javassist.bytecode.Bytecode;
+import javassist.bytecode.BadBytecode;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -52,6 +52,19 @@ abstract class AbstractElementMapperBuilder {
     mapperClass.addField(field);
   }
   
+  protected void invokerMapperConverterAndGetters(MapperBuilderContext context, LinkedList<GetterDef> getterChain, CtClass targetType) throws NotFoundException {
+    prepareInvokeMapper(context);
+    prepareInvokeConverter(context);
+    prepareInvokeGetter(context);
+    invokeGetterChain(context, getterChain);
+    invokeConverter(context, targetType);
+    invokeMapper(context, targetType);
+  }
+  
+  protected void prepareInvokeGetter(MapperBuilderContext context) {
+    context.loadAndCheckSource();
+  }
+  
   final static class GetterDef {
     final CtClass ctClass;
     final CtMethod ctMethod;
@@ -62,10 +75,6 @@ abstract class AbstractElementMapperBuilder {
     }
   }
   
-  protected void prepareInvokeGetter(MapperBuilderContext context) {
-    context.loadAndCheckSource();
-  }
-
   protected void invokeGetterChain(MapperBuilderContext context, LinkedList<GetterDef> getterChain) throws NotFoundException {
     for (GetterDef getterDef : getterChain) {
       context.invokeGetter(getterDef.ctClass, getterDef.ctMethod);
@@ -179,7 +188,7 @@ abstract class AbstractElementMapperBuilder {
   }
   
   protected void createNestedMapper(MapperBuilderContext context, CtClass sourceType, CtClass targetType) throws NotFoundException, CannotCompileException,
-  InstantiationException, IllegalAccessException {
+  InstantiationException, IllegalAccessException, BadBytecode {
     if (hasMapper()) {
       CtClass nestedMapperClass = context.mapperClass.makeNestedClass(StringUtils.capitalize(getName("Mapper")), true);
       classMapper = nestedClassMapperBuilder.build(nestedMapperClass, context.classPool, sourceType, targetType);
@@ -195,5 +204,5 @@ abstract class AbstractElementMapperBuilder {
   protected CtClass getLastGetterType(LinkedList<GetterDef> getterChain, CtClass sourceType) throws NotFoundException {
     return getterChain.isEmpty() ? sourceType : getterChain.getLast().ctMethod.getReturnType();
   }
-  
+
 }
