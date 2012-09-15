@@ -5,6 +5,7 @@
   <artifactId>xom</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <name>eXtreme Object Mapper</name>
+  <description>Generic object to object mapper using javassist for code generation.</description>
   <dependencies>
     <dependency>
       <groupId>javassist</groupId>
@@ -46,5 +47,4 @@
       </plugin>
     </plugins>
   </build>
-  <description>Generic object to object mapper using javassist for code generation.</description>
 </project>
