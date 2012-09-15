@@ -25,7 +25,7 @@ public class PropertyMapperBuilder extends AbstractElementMapperBuilder {
     this.target = target;
   }
   
-  public void addToBytecode(MapperBuilderContext context) throws NotFoundException, CannotCompileException, InstantiationException, IllegalAccessException, BadBytecode {
+  public void addToBytecode(MapperBuilderContext context) throws NotFoundException, CannotCompileException, BadBytecode {
     LinkedList<GetterDef> getterChain = findGetterChain(context.sourceClass);
     
     CtMethod setterMethod = findSetterMethod(context.targetClass);

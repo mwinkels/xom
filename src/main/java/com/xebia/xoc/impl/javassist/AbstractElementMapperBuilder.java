@@ -213,7 +213,7 @@ abstract class AbstractElementMapperBuilder {
   }
   
   protected void createNestedMapper(MapperBuilderContext context, CtClass sourceType, CtClass targetType) throws NotFoundException, CannotCompileException,
-  InstantiationException, IllegalAccessException, BadBytecode {
+  BadBytecode {
     if (hasMapper()) {
       CtClass nestedMapperClass = context.mapperClass.makeNestedClass(StringUtils.capitalize(getName("Mapper")), true);
       classMapper = nestedClassMapperBuilder.build(nestedMapperClass, context.classPool, sourceType, targetType);

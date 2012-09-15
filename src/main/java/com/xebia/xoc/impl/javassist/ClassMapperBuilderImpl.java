@@ -39,10 +39,6 @@ public class ClassMapperBuilderImpl implements ClassMapperBuilder {
       String mapperClassName = nameGenerator.mapperClassName(sourceClass, targetClass);
       CtClass mapperCtClass = classPool.makeClass(mapperClassName);
       return build(mapperCtClass, classPool, classPool.get(sourceClass.getName()), classPool.get(targetClass.getName()));
-    } catch (InstantiationException e) {
-      throw new RuntimeException(e);
-    } catch (IllegalAccessException e) {
-      throw new RuntimeException(e);
     } catch (CannotCompileException e) {
       throw new RuntimeException(e);
     } catch (NotFoundException e) {
@@ -52,7 +48,7 @@ public class ClassMapperBuilderImpl implements ClassMapperBuilder {
     }
   }
 
-  protected <S, T> ClassMapper<S, T> build(CtClass mapperCtClass, ClassPool classPool, CtClass souceCtClass, CtClass targetCtClass) throws NotFoundException, CannotCompileException, InstantiationException, IllegalAccessException, BadBytecode {
+  protected <S, T> ClassMapper<S, T> build(CtClass mapperCtClass, ClassPool classPool, CtClass souceCtClass, CtClass targetCtClass) throws NotFoundException, CannotCompileException, BadBytecode {
     CtClass superClass = classPool.get("com.xebia.xoc.impl.AbstractClassMapper");
     mapperCtClass.setSuperclass(superClass);
     addCreateMethod(mapperCtClass, classPool, souceCtClass, targetCtClass, superClass);
@@ -61,13 +57,23 @@ public class ClassMapperBuilderImpl implements ClassMapperBuilder {
     addFields(mapperCtClass, classPool, properties);
     @SuppressWarnings("unchecked")
     Class<ClassMapper<S, T>> mapperClass = mapperCtClass.toClass();
-    ClassMapper<S, T> mapperInstance = mapperClass.newInstance();
-    setFields(mapperInstance, constructorArguments);
-    setFields(mapperInstance, properties);
-    return mapperInstance;
+    return createMapper(mapperClass);
   }
 
-  private void addCreateMethod(CtClass mapperCtClass, ClassPool classPool, CtClass souceCtClass, CtClass targetCtClass, CtClass superClass) throws NotFoundException, CannotCompileException, InstantiationException, IllegalAccessException, BadBytecode {
+  private <T, S> ClassMapper<S, T> createMapper(Class<ClassMapper<S, T>> mapperClass) {
+    try {
+      ClassMapper<S, T> mapperInstance = mapperClass.newInstance();
+      setFields(mapperInstance, constructorArguments);
+      setFields(mapperInstance, properties);
+      return mapperInstance;
+    } catch (InstantiationException e) {
+      throw new RuntimeException(e);
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private void addCreateMethod(CtClass mapperCtClass, ClassPool classPool, CtClass souceCtClass, CtClass targetCtClass, CtClass superClass) throws NotFoundException, CannotCompileException, BadBytecode {
     CtMethod createMethod = implementAndGetMethod(mapperCtClass, superClass, "create");
     MethodInfo methodInfo = createMethod.getMethodInfo();
     Bytecode bytecode = new Bytecode(methodInfo.getConstPool(), 0, 2);
@@ -79,7 +85,7 @@ public class ClassMapperBuilderImpl implements ClassMapperBuilder {
     mapperCtClass.addMethod(createMethod);
   }
   
-  private void addApplyMethod(CtClass mapperCtClass, ClassPool classPool, CtClass souceCtClass, CtClass targetCtClass, CtClass superClass) throws NotFoundException, CannotCompileException, InstantiationException, IllegalAccessException, BadBytecode {
+  private void addApplyMethod(CtClass mapperCtClass, ClassPool classPool, CtClass souceCtClass, CtClass targetCtClass, CtClass superClass) throws NotFoundException, CannotCompileException, BadBytecode {
     CtMethod createMethod = implementAndGetMethod(mapperCtClass, superClass, "apply");
     MethodInfo methodInfo = createMethod.getMethodInfo();
     Bytecode bytecode = new Bytecode(methodInfo.getConstPool(), 0, 3);
@@ -98,8 +104,7 @@ public class ClassMapperBuilderImpl implements ClassMapperBuilder {
     return mapperMethod;
   }
   
-  private void doCreate(MapperBuilderContext context) throws NotFoundException, CannotCompileException, InstantiationException,
-      IllegalAccessException, BadBytecode {
+  private void doCreate(MapperBuilderContext context) throws NotFoundException, CannotCompileException, BadBytecode {
     context.newTargetClass();
     CtClass[] paramTypes = handleConstructorArguments(context);
     context.invokeConstructor(paramTypes);
@@ -107,7 +112,7 @@ public class ClassMapperBuilderImpl implements ClassMapperBuilder {
   }
 
   private CtClass[] handleConstructorArguments(MapperBuilderContext context)
-      throws NotFoundException, CannotCompileException, InstantiationException, IllegalAccessException, BadBytecode {
+      throws NotFoundException, CannotCompileException, BadBytecode {
     int i = 0;
     CtClass[] paramTypes = findConstructorParameterTypes(context.targetClass);
     for (ConstructorArgumentMapperBuilder constructorArgument : constructorArguments) {
@@ -125,13 +130,13 @@ public class ClassMapperBuilderImpl implements ClassMapperBuilder {
     throw new RuntimeException("No suitable constructor found.");
   }
   
-  private void doApply(MapperBuilderContext context) throws NotFoundException, CannotCompileException, InstantiationException, IllegalAccessException, BadBytecode {
+  private void doApply(MapperBuilderContext context) throws NotFoundException, CannotCompileException, BadBytecode {
     handleProperties(context);
     context.loadAndCheckReturnType();
     context.addReturn();
   }
 
-  private void handleProperties(MapperBuilderContext context) throws NotFoundException, CannotCompileException, InstantiationException, IllegalAccessException, BadBytecode {
+  private void handleProperties(MapperBuilderContext context) throws NotFoundException, CannotCompileException, BadBytecode {
     for (PropertyMapperBuilder property : properties) {
       property.addToBytecode(context);
     }

@@ -27,7 +27,7 @@ public class ConstructorArgumentMapperBuilder extends AbstractElementMapperBuild
     return "ca" + index + suffix;
   }
   
-  public void addToBytecode(MapperBuilderContext context, CtClass targetType) throws NotFoundException, CannotCompileException, InstantiationException, IllegalAccessException, BadBytecode {
+  public void addToBytecode(MapperBuilderContext context, CtClass targetType) throws NotFoundException, CannotCompileException, BadBytecode {
     LinkedList<GetterDef> getterChain = findGetterChain(context.sourceClass);
     
     CtClass finalSourceType = getLastGetterType(getterChain, context.sourceClass);
