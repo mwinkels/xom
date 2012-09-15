@@ -13,7 +13,7 @@ import com.xebia.xoc.impl.ClassMapperBuilder;
 import com.xebia.xoc.impl.beanutils.processors.ValueProcessor;
 import com.xebia.xoc.impl.beanutils.processors.ValueProcessorFactory;
 
-public abstract class AbstractElementExtractor {
+abstract class AbstractElementExtractor {
   
   protected final String source;
 

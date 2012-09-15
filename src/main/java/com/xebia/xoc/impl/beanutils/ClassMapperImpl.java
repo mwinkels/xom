@@ -54,7 +54,7 @@ public class ClassMapperImpl<S, T> extends AbstractClassMapper<S, T> {
     MappingConversionException mappingConversionException = null;
     for (ConstructorArgumentExtractor constructorArgument : constructorArguments) {
       try {
-        objects[i] = constructorArgument.extractValue(source, parameterTypes[i], valueProcessorFactory);
+        objects[i] = constructorArgument.apply(source, parameterTypes[i], valueProcessorFactory);
         i++;
       } catch (ConversionException e) {
         if (mappingConversionException == null) {
@@ -68,7 +68,7 @@ public class ClassMapperImpl<S, T> extends AbstractClassMapper<S, T> {
     }
     return objects;
   }
-  
+
   @Override
   protected T apply(S source, T target) throws MappingException {
     MappingConversionException mappingConversionException = null;
