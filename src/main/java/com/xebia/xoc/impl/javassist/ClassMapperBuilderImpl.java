@@ -1,6 +1,5 @@
 package com.xebia.xoc.impl.javassist;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -151,24 +150,7 @@ public class ClassMapperBuilderImpl implements ClassMapperBuilder {
   private void setFields(ClassMapper<?, ?> mapperInstance, List<? extends AbstractElementMapperBuilder> elements)
       throws IllegalAccessException {
     for (AbstractElementMapperBuilder element : elements) {
-      if (element.hasConverter()) {
-        Field field = getField(mapperInstance, element.getConverterFieldName());
-        field.set(mapperInstance, element.getConverter());
-      }
-      if (element.hasMapper()) {
-        Field field = getField(mapperInstance, element.getMapperFieldName());
-        field.set(mapperInstance, element.getClassMapper());
-      }
-    }
-  }
-  
-  private Field getField(ClassMapper<?, ?> mapperInstance, String fieldName) {
-    try {
-      return mapperInstance.getClass().getDeclaredField(fieldName);
-    } catch (SecurityException e) {
-      throw new RuntimeException(e);
-    } catch (NoSuchFieldException e) {
-      throw new RuntimeException(e);
+      element.setFields(mapperInstance);
     }
   }
 

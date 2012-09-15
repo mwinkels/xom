@@ -1,5 +1,6 @@
 package com.xebia.xoc.impl.javassist;
 
+import java.lang.reflect.Field;
 import java.util.LinkedList;
 
 import javassist.CannotCompileException;
@@ -50,6 +51,30 @@ abstract class AbstractElementMapperBuilder {
     CtField field = new CtField(type, fieldName, mapperClass);
     field.setModifiers(Modifier.PUBLIC);
     mapperClass.addField(field);
+  }
+  
+  public void setFields(ClassMapper<?, ?> mapperInstance) throws IllegalAccessException {
+    if (hasConverter()) {
+      setField(mapperInstance, getConverterFieldName(), getConverter());
+    }
+    if (hasMapper()) {
+      setField(mapperInstance, getMapperFieldName(), getClassMapper());
+    }
+  }
+
+  private void setField(ClassMapper<?, ?> mapperInstance, String fieldName, Object value) throws IllegalAccessException {
+    Field field = getField(mapperInstance, fieldName);
+    field.set(mapperInstance, value);
+  }
+  
+  private Field getField(ClassMapper<?, ?> mapperInstance, String fieldName) {
+    try {
+      return mapperInstance.getClass().getDeclaredField(fieldName);
+    } catch (SecurityException e) {
+      throw new RuntimeException(e);
+    } catch (NoSuchFieldException e) {
+      throw new RuntimeException(e);
+    }
   }
   
   protected void invokerMapperConverterAndGetters(MapperBuilderContext context, LinkedList<GetterDef> getterChain, CtClass targetType) throws NotFoundException {
