@@ -32,9 +32,6 @@ public class ClassMapperBuilderImpl implements ClassMapperBuilder {
     constructorArguments.add(constructorArgumentMapperBuilder);
   }
   
-  /* (non-Javadoc)
-   * @see com.xebia.xoc.javassist.ClassMapperBuilder#build(java.lang.Class, java.lang.Class)
-   */
   @Override
   public <S, T> ClassMapper<S, T> build(Class<S> sourceClass, Class<T> targetClass) {
     ClassPool classPool = ClassPool.getDefault();
