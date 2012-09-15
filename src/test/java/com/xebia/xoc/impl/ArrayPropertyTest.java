@@ -8,9 +8,6 @@ import org.junit.Test;
 
 import com.xebia.xoc.MappingException;
 import com.xebia.xoc.config.ClassMapperConfig;
-import com.xebia.xoc.impl.ClassMapper;
-import com.xebia.xoc.impl.ConfigurableMapper;
-import com.xebia.xoc.impl.MapperFactory;
 
 public class ArrayPropertyTest extends TestBase {
   
