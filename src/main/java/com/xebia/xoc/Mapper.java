@@ -2,7 +2,7 @@ package com.xebia.xoc;
 
 import java.util.List;
 
-public interface Mapper extends ClassMapperRegistry {
+public interface Mapper {
   
   <S, T> T map(S source, Class<T> target) throws MappingException;
   

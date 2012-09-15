@@ -4,7 +4,7 @@
   <groupId>com.xebia</groupId>
   <artifactId>xom</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <name>Xebia Object Mapper</name>
+  <name>eXtreme Object Mapper</name>
   <dependencies>
     <dependency>
       <groupId>javassist</groupId>
