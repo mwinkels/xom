@@ -1,10 +1,12 @@
 package com.xebia.xoc.impl.javassist;
 
+import static com.xebia.xoc.impl.javassist.Utils.abstractMapperClass;
+import static com.xebia.xoc.impl.javassist.Utils.classPool;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import javassist.CannotCompileException;
-import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtConstructor;
 import javassist.CtMethod;
@@ -34,27 +36,23 @@ public class ClassMapperBuilderImpl implements ClassMapperBuilder {
   
   @Override
   public <S, T> ClassMapper<S, T> build(Class<S> sourceClass, Class<T> targetClass) {
-    ClassPool classPool = ClassPool.getDefault();
     try {
       String mapperClassName = nameGenerator.mapperClassName(sourceClass, targetClass);
       CtClass mapperCtClass = classPool.makeClass(mapperClassName);
-      return build(mapperCtClass, classPool, classPool.get(sourceClass.getName()), classPool.get(targetClass.getName()));
+      return build(mapperCtClass, classPool.get(sourceClass.getName()), classPool.get(targetClass.getName()));
     } catch (CannotCompileException e) {
       throw new RuntimeException(e);
     } catch (NotFoundException e) {
       throw new RuntimeException(e);
-    } catch (BadBytecode e) {
-      throw new RuntimeException(e);
     }
   }
 
-  protected <S, T> ClassMapper<S, T> build(CtClass mapperCtClass, ClassPool classPool, CtClass souceCtClass, CtClass targetCtClass) throws NotFoundException, CannotCompileException, BadBytecode {
-    CtClass superClass = classPool.get("com.xebia.xoc.impl.AbstractClassMapper");
-    mapperCtClass.setSuperclass(superClass);
-    addCreateMethod(mapperCtClass, classPool, souceCtClass, targetCtClass, superClass);
-    addApplyMethod(mapperCtClass, classPool, souceCtClass, targetCtClass, superClass);
-    addFields(mapperCtClass, classPool, constructorArguments);
-    addFields(mapperCtClass, classPool, properties);
+  protected <S, T> ClassMapper<S, T> build(CtClass mapperCtClass, CtClass souceCtClass, CtClass targetCtClass) throws CannotCompileException {
+    mapperCtClass.setSuperclass(abstractMapperClass);
+    addCreateMethod(mapperCtClass, souceCtClass, targetCtClass);
+    addApplyMethod(mapperCtClass, souceCtClass, targetCtClass);
+    addFields(mapperCtClass, constructorArguments);
+    addFields(mapperCtClass, properties);
     @SuppressWarnings("unchecked")
     Class<ClassMapper<S, T>> mapperClass = mapperCtClass.toClass();
     return createMapper(mapperClass);
@@ -73,38 +71,47 @@ public class ClassMapperBuilderImpl implements ClassMapperBuilder {
     }
   }
 
-  private void addCreateMethod(CtClass mapperCtClass, ClassPool classPool, CtClass souceCtClass, CtClass targetCtClass, CtClass superClass) throws NotFoundException, CannotCompileException, BadBytecode {
-    CtMethod createMethod = implementAndGetMethod(mapperCtClass, superClass, "create");
+  private void addCreateMethod(CtClass mapperCtClass, CtClass souceCtClass, CtClass targetCtClass) throws CannotCompileException {
+    CtMethod createMethod = implementAndGetMethod(mapperCtClass, abstractMapperClass, "create");
     MethodInfo methodInfo = createMethod.getMethodInfo();
     Bytecode bytecode = new Bytecode(methodInfo.getConstPool(), 0, 2);
-    MapperBuilderContext context = new MapperBuilderContext(souceCtClass, targetCtClass, mapperCtClass, classPool, bytecode);
+    MapperBuilderContext context = new MapperBuilderContext(souceCtClass, targetCtClass, mapperCtClass, bytecode);
     doCreate(context);
-    CodeAttribute codeAttribute = bytecode.toCodeAttribute();
-    codeAttribute.computeMaxStack();
-    methodInfo.setCodeAttribute(codeAttribute);
-    mapperCtClass.addMethod(createMethod);
+    doAddMethodBytecode(mapperCtClass, createMethod, methodInfo, bytecode);
   }
-  
-  private void addApplyMethod(CtClass mapperCtClass, ClassPool classPool, CtClass souceCtClass, CtClass targetCtClass, CtClass superClass) throws NotFoundException, CannotCompileException, BadBytecode {
-    CtMethod createMethod = implementAndGetMethod(mapperCtClass, superClass, "apply");
+
+  private void addApplyMethod(CtClass mapperCtClass, CtClass souceCtClass, CtClass targetCtClass) throws CannotCompileException {
+    CtMethod createMethod = implementAndGetMethod(mapperCtClass, abstractMapperClass, "apply");
     MethodInfo methodInfo = createMethod.getMethodInfo();
     Bytecode bytecode = new Bytecode(methodInfo.getConstPool(), 0, 3);
-    MapperBuilderContext context = new MapperBuilderContext(souceCtClass, targetCtClass, mapperCtClass, classPool, bytecode);
+    MapperBuilderContext context = new MapperBuilderContext(souceCtClass, targetCtClass, mapperCtClass, bytecode);
     doApply(context);
+    doAddMethodBytecode(mapperCtClass, createMethod, methodInfo, bytecode);
+  }
+  
+  private void doAddMethodBytecode(CtClass mapperCtClass, CtMethod createMethod, MethodInfo methodInfo, Bytecode bytecode) throws CannotCompileException {
     CodeAttribute codeAttribute = bytecode.toCodeAttribute();
-    codeAttribute.computeMaxStack();
+    try {
+      codeAttribute.computeMaxStack();
+    } catch (BadBytecode e) {
+      throw new AssertionError(e);
+    }
     methodInfo.setCodeAttribute(codeAttribute);
     mapperCtClass.addMethod(createMethod);
   }
   
-  private CtMethod implementAndGetMethod(CtClass mapperCtClass, CtClass superClass, String name) throws NotFoundException, CannotCompileException {
-    CtMethod abstractMethod = superClass.getDeclaredMethod(name);
-    CtMethod mapperMethod = new CtMethod(abstractMethod, mapperCtClass, null);
-    mapperMethod.setModifiers(mapperMethod.getModifiers() & ~Modifier.ABSTRACT);
-    return mapperMethod;
+  private CtMethod implementAndGetMethod(CtClass mapperCtClass, CtClass superClass, String name) throws CannotCompileException {
+    try {
+      CtMethod abstractMethod = superClass.getDeclaredMethod(name);
+      CtMethod mapperMethod = new CtMethod(abstractMethod, mapperCtClass, null);
+      mapperMethod.setModifiers(mapperMethod.getModifiers() & ~Modifier.ABSTRACT);
+      return mapperMethod;
+    } catch (NotFoundException e) {
+      throw new AssertionError(e);
+    }
   }
   
-  private void doCreate(MapperBuilderContext context) throws NotFoundException, CannotCompileException, BadBytecode {
+  private void doCreate(MapperBuilderContext context) throws CannotCompileException {
     context.newTargetClass();
     CtClass[] paramTypes = handleConstructorArguments(context);
     context.invokeConstructor(paramTypes);
@@ -112,7 +119,7 @@ public class ClassMapperBuilderImpl implements ClassMapperBuilder {
   }
 
   private CtClass[] handleConstructorArguments(MapperBuilderContext context)
-      throws NotFoundException, CannotCompileException, BadBytecode {
+      throws CannotCompileException {
     int i = 0;
     CtClass[] paramTypes = findConstructorParameterTypes(context.targetClass);
     for (ConstructorArgumentMapperBuilder constructorArgument : constructorArguments) {
@@ -121,31 +128,36 @@ public class ClassMapperBuilderImpl implements ClassMapperBuilder {
     return paramTypes;
   }
   
-  private CtClass[] findConstructorParameterTypes(CtClass returnClass) throws NotFoundException {
+  private CtClass[] findConstructorParameterTypes(CtClass returnClass) {
     for (CtConstructor constructor : returnClass.getConstructors()) {
-      if (constructor.getParameterTypes().length == constructorArguments.size()) {
-        return constructor.getParameterTypes();
+      try {
+        CtClass[] parameterTypes = constructor.getParameterTypes();
+        if (parameterTypes.length == constructorArguments.size()) {
+          return parameterTypes;
+        }
+      } catch (NotFoundException e) {
+        throw new AssertionError(e);
       }
     }
     throw new RuntimeException("No suitable constructor found.");
   }
   
-  private void doApply(MapperBuilderContext context) throws NotFoundException, CannotCompileException, BadBytecode {
+  private void doApply(MapperBuilderContext context) throws CannotCompileException {
     handleProperties(context);
     context.loadAndCheckReturnType();
     context.addReturn();
   }
 
-  private void handleProperties(MapperBuilderContext context) throws NotFoundException, CannotCompileException, BadBytecode {
+  private void handleProperties(MapperBuilderContext context) throws CannotCompileException {
     for (PropertyMapperBuilder property : properties) {
       property.addToBytecode(context);
     }
   }
   
-  private void addFields(CtClass mapperClass, ClassPool classPool, List<? extends AbstractElementMapperBuilder> elements)
-      throws CannotCompileException, NotFoundException {
+  private void addFields(CtClass mapperClass, List<? extends AbstractElementMapperBuilder> elements)
+      throws CannotCompileException {
     for (AbstractElementMapperBuilder element : elements) {
-      element.addFields(mapperClass, classPool);
+      element.addFields(mapperClass);
     }
   }
   

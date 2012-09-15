@@ -4,8 +4,6 @@ import java.util.LinkedList;
 
 import javassist.CannotCompileException;
 import javassist.CtClass;
-import javassist.NotFoundException;
-import javassist.bytecode.BadBytecode;
 
 import com.xebia.xoc.conversion.Converter;
 import com.xebia.xoc.impl.ClassMapperRegistry;
@@ -27,7 +25,7 @@ public class ConstructorArgumentMapperBuilder extends AbstractElementMapperBuild
     return "ca" + index + suffix;
   }
   
-  public void addToBytecode(MapperBuilderContext context, CtClass targetType) throws NotFoundException, CannotCompileException, BadBytecode {
+  public void addToBytecode(MapperBuilderContext context, CtClass targetType) throws CannotCompileException {
     LinkedList<GetterDef> getterChain = findGetterChain(context.sourceClass);
     
     CtClass finalSourceType = getLastGetterType(getterChain, context.sourceClass);

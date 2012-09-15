@@ -1,12 +1,10 @@
 package com.xebia.xoc.impl.javassist;
 
-import com.xebia.xoc.util.BytecodePrinter;
-
-import javassist.ClassPool;
+import static com.xebia.xoc.impl.javassist.Utils.classPool;
+import static com.xebia.xoc.impl.javassist.Utils.objectType;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.NotFoundException;
-import javassist.bytecode.BadBytecode;
 import javassist.bytecode.Bytecode;
 import javassist.bytecode.Opcode;
 
@@ -17,17 +15,13 @@ public class MapperBuilderContext {
   public final CtClass sourceClass;
   public final CtClass targetClass;
   public final CtClass mapperClass;
-  public final ClassPool classPool;
   private final Bytecode bytecode;
-  private final CtClass objectType;
   
-  public MapperBuilderContext(CtClass sourceClass, CtClass targetClass, CtClass mapperClass, ClassPool classPool, Bytecode bytecode) throws NotFoundException {
+  public MapperBuilderContext(CtClass sourceClass, CtClass targetClass, CtClass mapperClass, Bytecode bytecode) {
     this.sourceClass = sourceClass;
     this.targetClass = targetClass;
     this.mapperClass = mapperClass;
-    this.classPool = classPool;
     this.bytecode = bytecode;
-    this.objectType = classPool.get("java.lang.Object");
   }
 
   public void newTargetClass() {
@@ -63,12 +57,20 @@ public class MapperBuilderContext {
     bytecode.addCheckcast(targetType);
   }
 
-  protected void invokeGetter(CtClass sourceCtClass, CtMethod getterMethod) throws NotFoundException {
-    bytecode.addInvokevirtual(sourceCtClass, getterMethod.getName(), getterMethod.getReturnType(), getterMethod.getParameterTypes());
+  protected void invokeGetter(CtClass sourceCtClass, CtMethod getterMethod) {
+    try {
+      bytecode.addInvokevirtual(sourceCtClass, getterMethod.getName(), getterMethod.getReturnType(), getterMethod.getParameterTypes());
+    } catch (NotFoundException e) {
+      throw new AssertionError(e);
+    }
   }
   
-  public void invokeSetter(CtMethod setterMethod) throws NotFoundException {
-    bytecode.addInvokevirtual(targetClass, setterMethod.getName(), CtClass.voidType, setterMethod.getParameterTypes());
+  public void invokeSetter(CtMethod setterMethod) {
+    try {
+      bytecode.addInvokevirtual(targetClass, setterMethod.getName(), CtClass.voidType, setterMethod.getParameterTypes());
+    } catch (NotFoundException e) {
+      throw new AssertionError(e);
+    }
   }
 
   public void storeTemporaryResult(CtClass type) {
@@ -92,10 +94,6 @@ public class MapperBuilderContext {
     if (bytecode.getMaxLocals() < maxLocals) {
       bytecode.setMaxLocals(maxLocals);
     }
-  }
-
-  protected void dump() throws BadBytecode {
-      System.out.println(new BytecodePrinter(bytecode.toCodeAttribute()).makeString());
   }
 
   public void storeLoopSize() {

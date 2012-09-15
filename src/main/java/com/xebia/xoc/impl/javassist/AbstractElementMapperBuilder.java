@@ -1,17 +1,18 @@
 package com.xebia.xoc.impl.javassist;
 
+import static com.xebia.xoc.impl.javassist.Utils.classMapperInterface;
+import static com.xebia.xoc.impl.javassist.Utils.converterInterface;
+
 import java.lang.reflect.Field;
 import java.util.LinkedList;
 
 import javassist.CannotCompileException;
-import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtField;
 import javassist.CtMethod;
 import javassist.CtPrimitiveType;
 import javassist.Modifier;
 import javassist.NotFoundException;
-import javassist.bytecode.BadBytecode;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -38,15 +39,15 @@ abstract class AbstractElementMapperBuilder {
     this.nestedClassMapperBuilder = nestedClassMapperBuilder;
   }
   
-  protected void addFields(CtClass mapperClass, ClassPool classPool) throws CannotCompileException, NotFoundException {
+  protected void addFields(CtClass mapperClass) throws CannotCompileException {
     if (hasConverter()) {
-      addField(mapperClass, classPool.get("com.xebia.xoc.conversion.Converter"), getConverterFieldName());
+      addField(mapperClass, converterInterface, getConverterFieldName());
     }
     if (hasMapper()) {
-      addField(mapperClass, classPool.get("com.xebia.xoc.impl.ClassMapper"), getMapperFieldName());
+      addField(mapperClass, classMapperInterface, getMapperFieldName());
     }
   }
-  
+
   private void addField(CtClass mapperClass, CtClass type, String fieldName) throws CannotCompileException {
     CtField field = new CtField(type, fieldName, mapperClass);
     field.setModifiers(Modifier.PUBLIC);
@@ -77,7 +78,7 @@ abstract class AbstractElementMapperBuilder {
     }
   }
   
-  protected void invokerMapperConverterAndGetters(MapperBuilderContext context, LinkedList<GetterDef> getterChain, CtClass targetType) throws NotFoundException {
+  protected void invokerMapperConverterAndGetters(MapperBuilderContext context, LinkedList<GetterDef> getterChain, CtClass targetType) {
     prepareInvokeMapper(context);
     prepareInvokeConverter(context);
     prepareInvokeGetter(context);
@@ -100,21 +101,25 @@ abstract class AbstractElementMapperBuilder {
     }
   }
   
-  protected void invokeGetterChain(MapperBuilderContext context, LinkedList<GetterDef> getterChain) throws NotFoundException {
+  protected void invokeGetterChain(MapperBuilderContext context, LinkedList<GetterDef> getterChain) {
     for (GetterDef getterDef : getterChain) {
       context.invokeGetter(getterDef.ctClass, getterDef.ctMethod);
     }
   }
   
-  protected LinkedList<GetterDef> findGetterChain(CtClass currentCtClass) throws NotFoundException {
+  protected LinkedList<GetterDef> findGetterChain(CtClass currentCtClass) {
     LinkedList<GetterDef> getterChain = new LinkedList<GetterDef>();
     if (source != null) {
       String[] parts = source.split("\\.");
       for (String getterName : parts) {
-        CtMethod getterMethod = findGetterMethod(currentCtClass, getterName);
-        checkGetterSignature(getterMethod);
-        getterChain.add(new GetterDef(currentCtClass, getterMethod));
-        currentCtClass = getterMethod.getReturnType();
+        try {
+          CtMethod getterMethod = findGetterMethod(currentCtClass, getterName);
+          checkGetterSignature(getterMethod);
+          getterChain.add(new GetterDef(currentCtClass, getterMethod));
+          currentCtClass = getterMethod.getReturnType();
+        } catch (NotFoundException e) {
+          throw new AssertionError(e);
+        }
       }
     }
     return getterChain;
@@ -132,15 +137,19 @@ abstract class AbstractElementMapperBuilder {
     }
   }
   
-  protected void invokeConverter(MapperBuilderContext context, CtClass targetType) throws NotFoundException {
+  protected void invokeConverter(MapperBuilderContext context, CtClass targetType) {
     if (hasConverter()) {
-      context.invokeTransformMethod("com.xebia.xoc.conversion.Converter", "convert", targetType);
+      try {
+        context.invokeTransformMethod("com.xebia.xoc.conversion.Converter", "convert", targetType);
+      } catch (NotFoundException e) {
+        throw new AssertionError(e);
+      }
     }
   }
 
   @SuppressWarnings("unchecked")
-  protected void findMapperOrConverterIfRequired(CtClass sourceType, CtClass targetType) throws NotFoundException {
-    boolean typesDiffer = !sourceType.subtypeOf(targetType);
+  protected void findMapperOrConverterIfRequired(CtClass sourceType, CtClass targetType) {
+    boolean typesDiffer = typesDiffer(sourceType, targetType);
     if (typesDiffer && classMapper == null) {
       classMapper = mapperRegistry.findClassMapper(asClass(sourceType), asClass(targetType));
     }
@@ -149,6 +158,14 @@ abstract class AbstractElementMapperBuilder {
     }
     if (typesDiffer && converter == null) {
       converter = converterRegistry.findConverter(asClass(sourceType), asClass(targetType));
+    }
+  }
+
+  private boolean typesDiffer(CtClass sourceType, CtClass targetType) {
+    try {
+      return !sourceType.subtypeOf(targetType);
+    } catch (NotFoundException e) {
+      throw new AssertionError(e);
     }
   }
   
@@ -169,9 +186,13 @@ abstract class AbstractElementMapperBuilder {
     }
   }
 
-  protected void invokeMapper(MapperBuilderContext context, CtClass targetType) throws NotFoundException {
+  protected void invokeMapper(MapperBuilderContext context, CtClass targetType) {
     if (hasMapper()) {
-      context.invokeTransformMethod("com.xebia.xoc.impl.ClassMapper", "map", targetType);
+      try {
+        context.invokeTransformMethod("com.xebia.xoc.impl.ClassMapper", "map", targetType);
+      } catch (NotFoundException e) {
+        throw new AssertionError(e);
+      }
     }
   }
   
@@ -212,11 +233,10 @@ abstract class AbstractElementMapperBuilder {
     return getName("Mapper");
   }
   
-  protected void createNestedMapper(MapperBuilderContext context, CtClass sourceType, CtClass targetType) throws NotFoundException, CannotCompileException,
-  BadBytecode {
+  protected void createNestedMapper(MapperBuilderContext context, CtClass sourceType, CtClass targetType) throws CannotCompileException {
     if (hasMapper()) {
       CtClass nestedMapperClass = context.mapperClass.makeNestedClass(StringUtils.capitalize(getName("Mapper")), true);
-      classMapper = nestedClassMapperBuilder.build(nestedMapperClass, context.classPool, sourceType, targetType);
+      classMapper = nestedClassMapperBuilder.build(nestedMapperClass, sourceType, targetType);
     }
   }
   
@@ -226,8 +246,12 @@ abstract class AbstractElementMapperBuilder {
   
   protected abstract String getName(String suffix);
 
-  protected CtClass getLastGetterType(LinkedList<GetterDef> getterChain, CtClass sourceType) throws NotFoundException {
-    return getterChain.isEmpty() ? sourceType : getterChain.getLast().ctMethod.getReturnType();
+  protected CtClass getLastGetterType(LinkedList<GetterDef> getterChain, CtClass sourceType) {
+    try {
+      return getterChain.isEmpty() ? sourceType : getterChain.getLast().ctMethod.getReturnType();
+    } catch (NotFoundException e) {
+      throw new AssertionError(e);
+    }
   }
 
 }
