@@ -16,9 +16,9 @@ public class ConverterRegistry {
   }
   
   @SuppressWarnings({ "rawtypes", "unchecked" })
-  public Converter findConverter(Class sourceClass, Class targetCLass) {
+  public Converter findConverter(Class sourceClass, Class targetClass) {
     for (Converter element : converters) {
-      if (element.canConvert(sourceClass, targetCLass)) {
+      if (element.canConvert(sourceClass, targetClass)) {
         return element;
       }
     }

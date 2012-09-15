@@ -8,8 +8,12 @@ import org.junit.Test;
 
 import com.xebia.xoc.config.ClassMapperConfig;
 
-public class PropertyWithInstanceTest {
+public class PropertyWithInstanceTest extends TestBase {
   
+  public PropertyWithInstanceTest(MapperFactory mapperFactory) {
+    super(mapperFactory);
+  }
+
   public static class Source {
     
     private int a;
@@ -38,9 +42,9 @@ public class PropertyWithInstanceTest {
   }
   
   @Test
-  public void shouldCreateMapper() {
+  public void shouldCreateMapper() throws MappingException {
     ClassMapperConfig config = new ClassMapperConfig().property("b").from("a").add();
-    ConfigurableMapper mapper = new ConfigurableMapper();
+    ConfigurableMapper mapper = new ConfigurableMapper(mapperFactory);
     mapper.withMapper(config, Source.class, Target.class);
     Source source = new Source();
     source.setA(12);

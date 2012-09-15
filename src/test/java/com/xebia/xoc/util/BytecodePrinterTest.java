@@ -9,8 +9,6 @@ import javassist.bytecode.Opcode;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.xebia.xoc.util.BytecodePrinter;
-
 public class BytecodePrinterTest {
   
   private Bytecode bytecode;

@@ -17,8 +17,9 @@ import javassist.bytecode.CodeAttribute;
 import javassist.bytecode.MethodInfo;
 
 import com.xebia.xoc.ClassMapper;
+import com.xebia.xoc.builder.ClassMapperBuilder;
 
-public class ClassMapperBuilder {
+public class ClassMapperBuilderImpl implements ClassMapperBuilder {
   
   private final NameGenerator nameGenerator = new DefaultNameGenerator();
   private final List<PropertyMapperBuilder> properties = new ArrayList<PropertyMapperBuilder>();
@@ -32,6 +33,10 @@ public class ClassMapperBuilder {
     constructorArguments.add(constructorArgumentMapperBuilder);
   }
   
+  /* (non-Javadoc)
+   * @see com.xebia.xoc.javassist.ClassMapperBuilder#build(java.lang.Class, java.lang.Class)
+   */
+  @Override
   public <S, T> ClassMapper<S, T> build(Class<S> sourceClass, Class<T> targetClass) {
     ClassPool classPool = ClassPool.getDefault();
     try {

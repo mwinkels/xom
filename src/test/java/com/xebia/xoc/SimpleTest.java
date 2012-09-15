@@ -8,7 +8,7 @@ import org.junit.Test;
 
 import com.xebia.xoc.config.ClassMapperConfig;
 
-public class SimpleTest {
+public class SimpleTest extends TestBase {
   
   public static class Source {
     
@@ -17,13 +17,17 @@ public class SimpleTest {
   public static class Target {
     
   }
+
+  public SimpleTest(MapperFactory mapperFactory) {
+    super(mapperFactory);
+  }
   
   @Test
-  public void shouldCreateMapper() {
-    ClassMapper<Source, Target> mapper = new ConfigurableMapper().withMapper(new ClassMapperConfig(), Source.class, Target.class);
+  public void shouldCreateMapper() throws MappingException {
+    ClassMapper<Source, Target> mapper = new ConfigurableMapper(mapperFactory).withMapper(new ClassMapperConfig(), Source.class, Target.class);
     assertThat(mapper, is(notNullValue()));
     Target target = mapper.map(new Source());
     assertThat(target, is(notNullValue()));
   }
-  
+
 }

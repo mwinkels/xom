@@ -8,8 +8,12 @@ import org.junit.Test;
 
 import com.xebia.xoc.config.ClassMapperConfig;
 
-public class ArrayPropertyTest {
+public class ArrayPropertyTest extends TestBase {
   
+  public ArrayPropertyTest(MapperFactory mapperFactory) {
+    super(mapperFactory);
+  }
+
   public static class Source {
     
     private Integer[] a;
@@ -38,9 +42,9 @@ public class ArrayPropertyTest {
   }
   
   @Test
-  public void shouldCreateMapper() {
+  public void shouldCreateMapper() throws MappingException {
     ClassMapperConfig config = new ClassMapperConfig().property("b").from("a").add();
-    ClassMapper<Source, Target> mapper = new ConfigurableMapper().withMapper(config, Source.class, Target.class);
+    ClassMapper<Source, Target> mapper = new ConfigurableMapper(mapperFactory).withMapper(config, Source.class, Target.class);
     assertThat(mapper, is(notNullValue()));
     Source source = new Source();
     source.setA(new Integer[]{12,14});

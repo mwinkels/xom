@@ -25,11 +25,11 @@ abstract class AbstractElementMapperBuilder {
   private final ConverterRegistry converterRegistry;
   private final ClassMapperRegistry mapperRegistry;
   private final String source;
-  private final ClassMapperBuilder nestedClassMapperBuilder;
+  private final ClassMapperBuilderImpl nestedClassMapperBuilder;
   private Converter converter;
   private ClassMapper<?, ?> classMapper;
   
-  public AbstractElementMapperBuilder(ConverterRegistry converterRegistry, ClassMapperRegistry mapperRegistry, String source, Converter converter, ClassMapperBuilder nestedClassMapperBuilder) {
+  public AbstractElementMapperBuilder(ConverterRegistry converterRegistry, ClassMapperRegistry mapperRegistry, String source, Converter converter, ClassMapperBuilderImpl nestedClassMapperBuilder) {
     this.converterRegistry = converterRegistry;
     this.mapperRegistry = mapperRegistry;
     this.source = source;
@@ -114,13 +114,13 @@ abstract class AbstractElementMapperBuilder {
   }
 
   @SuppressWarnings("unchecked")
-  protected void findMapperOrConverterIfRequired(CtClass sourceType, CtClass targetType) {
-    boolean typesDiffer = !targetType.equals(sourceType);
+  protected void findMapperOrConverterIfRequired(CtClass sourceType, CtClass targetType) throws NotFoundException {
+    boolean typesDiffer = !sourceType.subtypeOf(targetType);
     if (typesDiffer && classMapper == null) {
       classMapper = mapperRegistry.findClassMapper(asClass(sourceType), asClass(targetType));
-      if (classMapper != null) {
-        return;
-      }
+    }
+    if (classMapper != null) {
+      return;
     }
     if (typesDiffer && converter == null) {
       converter = converterRegistry.findConverter(asClass(sourceType), asClass(targetType));

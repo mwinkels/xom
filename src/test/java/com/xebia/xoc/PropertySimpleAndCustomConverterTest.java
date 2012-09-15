@@ -15,8 +15,12 @@ import com.xebia.xoc.config.ClassMapperConfig;
 import com.xebia.xoc.conversion.ConversionException;
 import com.xebia.xoc.conversion.Converter;
 
-public class PropertySimpleAndCustomConverterTest {
+public class PropertySimpleAndCustomConverterTest extends TestBase {
   
+  public PropertySimpleAndCustomConverterTest(MapperFactory mapperFactory) {
+    super(mapperFactory);
+  }
+
   public class StringToDateConverter implements Converter<String, Date> {
     
     @Override
@@ -81,11 +85,11 @@ public class PropertySimpleAndCustomConverterTest {
   }
   
   @Test
-  public void shouldCreateMapper() {
+  public void shouldCreateMapper() throws MappingException {
     ClassMapperConfig config = new ClassMapperConfig()//
         .property("b").from("a").add()//
         .property("d").from("s").withConverter(new StringToDateConverter()).add();
-    ClassMapper<Source, Target> mapper = new ConfigurableMapper().withMapper(config, Source.class, Target.class);
+    ClassMapper<Source, Target> mapper = new ConfigurableMapper(mapperFactory).withMapper(config, Source.class, Target.class);
     assertThat(mapper, is(notNullValue()));
     Source source = new Source();
     source.setA(12);

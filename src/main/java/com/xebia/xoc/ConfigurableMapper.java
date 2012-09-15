@@ -5,7 +5,6 @@ import java.util.List;
 
 import com.xebia.xoc.config.ClassMapperConfig;
 import com.xebia.xoc.conversion.ConverterRegistry;
-import com.xebia.xoc.javassist.MapperFactory;
 
 public class ConfigurableMapper extends AbstractMapper {
   
@@ -28,10 +27,11 @@ public class ConfigurableMapper extends AbstractMapper {
   }
   
   private final List<ClassMapperEntry<?, ?>> classMappers = new ArrayList<ClassMapperEntry<?, ?>>();
-  private final MapperFactory mapperFactory = new MapperFactory();
+  private final MapperFactory mapperFactory;
   private final ConverterRegistry converterRegistry = new ConverterRegistry();
   
-  public ConfigurableMapper() {
+  public ConfigurableMapper(MapperFactory mapperFactory) {
+    this.mapperFactory = mapperFactory;
     converterRegistry.registerDefaultConverters();
   }
   

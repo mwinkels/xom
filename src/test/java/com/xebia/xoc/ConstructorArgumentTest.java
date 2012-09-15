@@ -8,8 +8,12 @@ import org.junit.Test;
 
 import com.xebia.xoc.config.ClassMapperConfig;
 
-public class ConstructorArgumentTest {
+public class ConstructorArgumentTest extends TestBase {
   
+  public ConstructorArgumentTest(MapperFactory mapperFactory) {
+    super(mapperFactory);
+  }
+
   public static class Source {
     
     private int a;
@@ -38,10 +42,10 @@ public class ConstructorArgumentTest {
   }
   
   @Test
-  public void shouldCreateMapper() {
+  public void shouldCreateMapper() throws MappingException {
     ClassMapperConfig config = new ClassMapperConfig()//
         .constructorArg(0).from("a").add();
-    ClassMapper<Source, Target> mapper = new ConfigurableMapper().withMapper(config, Source.class, Target.class);
+    ClassMapper<Source, Target> mapper = new ConfigurableMapper(mapperFactory).withMapper(config, Source.class, Target.class);
     assertThat(mapper, is(notNullValue()));
     Source source = new Source();
     source.setA(12);

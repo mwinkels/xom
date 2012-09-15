@@ -8,8 +8,12 @@ import org.junit.Test;
 
 import com.xebia.xoc.config.ClassMapperConfig;
 
-public class PropertiesBooleanTest {
+public class PropertiesBooleanTest extends TestBase {
   
+  public PropertiesBooleanTest(MapperFactory mapperFactory) {
+    super(mapperFactory);
+  }
+
   public static class Source {
     
     private int a;
@@ -58,11 +62,11 @@ public class PropertiesBooleanTest {
   }
   
   @Test
-  public void shouldCreateMapper() {
+  public void shouldCreateMapper() throws MappingException {
     ClassMapperConfig config = new ClassMapperConfig()//
         .property("b").from("a").add()//
         .property("c").from("b").add();
-    ClassMapper<Source, Target> mapper = new ConfigurableMapper().withMapper(config, Source.class, Target.class);
+    ClassMapper<Source, Target> mapper = new ConfigurableMapper(mapperFactory).withMapper(config, Source.class, Target.class);
     assertThat(mapper, is(notNullValue()));
     Source source = new Source();
     source.setA(12);

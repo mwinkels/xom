@@ -17,7 +17,7 @@ public class ConstructorArgumentMapperBuilder extends AbstractElementMapperBuild
   
   @SuppressWarnings("rawtypes")
   public ConstructorArgumentMapperBuilder(ConverterRegistry converterRegistry, ClassMapperRegistry mapperRegistry, String source, int index, Converter converter,
-      ClassMapperBuilder nestedClassMapperBuilder) {
+      ClassMapperBuilderImpl nestedClassMapperBuilder) {
     super(converterRegistry, mapperRegistry, source, converter, nestedClassMapperBuilder);
     this.index = index;
   }

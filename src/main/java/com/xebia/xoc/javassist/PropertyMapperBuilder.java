@@ -20,7 +20,7 @@ public class PropertyMapperBuilder extends AbstractElementMapperBuilder {
   private final String target;
   
   public PropertyMapperBuilder(ConverterRegistry converterRegistry, ClassMapperRegistry mapperRegistry, String source, String target, Converter<?,?> converter,
-      ClassMapperBuilder nestedClassMapperBuilder) {
+      ClassMapperBuilderImpl nestedClassMapperBuilder) {
     super(converterRegistry, mapperRegistry, source, converter, nestedClassMapperBuilder);
     this.target = target;
   }

@@ -8,8 +8,12 @@ import org.junit.Test;
 
 import com.xebia.xoc.config.ClassMapperConfig;
 
-public class NestedSourceAndTargetExternalMapperTest {
+public class NestedSourceAndTargetExternalMapperTest extends TestBase {
   
+  public NestedSourceAndTargetExternalMapperTest(MapperFactory mapperFactory) {
+    super(mapperFactory);
+  }
+
   public static class Source {
     
     private SourceNested nested = new SourceNested();
@@ -61,8 +65,8 @@ public class NestedSourceAndTargetExternalMapperTest {
   }
   
   @Test
-  public void shouldCreateMapper() {
-    ConfigurableMapper configurableMapper = new ConfigurableMapper();
+  public void shouldCreateMapper() throws MappingException {
+    ConfigurableMapper configurableMapper = new ConfigurableMapper(mapperFactory);
     configurableMapper.withMapper(new ClassMapperConfig().property("b").from("a").add(), SourceNested.class, TargetNested.class);
     ClassMapperConfig config = new ClassMapperConfig()//
         .property("nested").from("nested")
