@@ -4,16 +4,16 @@ import nl.mwinkels.xom.conversion.ConversionException;
 import nl.mwinkels.xom.conversion.Converter;
 
 public class ConverterProcessor implements ValueProcessor {
-  
-  private final Converter<Object, Object> converter;
 
-  public ConverterProcessor(Converter<Object, Object> converter) {
-    this.converter = converter;
-  }
+    private final Converter<Object, Object> converter;
 
-  @Override
-  public Object process(Object value) throws ConversionException {
-    return converter.convert(value);
-  }
-  
+    public ConverterProcessor(Converter<Object, Object> converter) {
+        this.converter = converter;
+    }
+
+    @Override
+    public Object process(Object value) throws ConversionException {
+        return converter.convert(value);
+    }
+
 }

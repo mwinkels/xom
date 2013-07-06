@@ -1,35 +1,35 @@
 package nl.mwinkels.xom.impl.beanutils;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import nl.mwinkels.xom.impl.ClassMapper;
 import nl.mwinkels.xom.impl.ClassMapperBuilder;
 import nl.mwinkels.xom.impl.beanutils.processors.ValueProcessorFactory;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ClassMapperBuilderImpl implements ClassMapperBuilder {
-  
-  private final ValueProcessorFactory valueProcessorFactory;
-  
-  protected final List<ConstructorArgumentExtractor> constructorArguments = new ArrayList<ConstructorArgumentExtractor>();
 
-  protected final List<PropertyExtractor> properties = new ArrayList<PropertyExtractor>();
+    private final ValueProcessorFactory valueProcessorFactory;
 
-  public ClassMapperBuilderImpl(ValueProcessorFactory valueProcessorFactory) {
-    this.valueProcessorFactory = valueProcessorFactory;
-  }
+    protected final List<ConstructorArgumentExtractor> constructorArguments = new ArrayList<ConstructorArgumentExtractor>();
 
-  @Override
-  public <S, T> ClassMapper<S, T> build(Class<S> sourceClass, Class<T> targetClass) {
-    return new ClassMapperImpl<S, T>(valueProcessorFactory, constructorArguments, properties, sourceClass, targetClass);
-  }
+    protected final List<PropertyExtractor> properties = new ArrayList<PropertyExtractor>();
 
-  public void addConstructorArgumentExtractor(ConstructorArgumentExtractor constructorArgumentMapperBuilder) {
-    constructorArguments.add(constructorArgumentMapperBuilder);
-  }
+    public ClassMapperBuilderImpl(ValueProcessorFactory valueProcessorFactory) {
+        this.valueProcessorFactory = valueProcessorFactory;
+    }
 
-  public void addPropertyExtactor(PropertyExtractor propertyExtractor) {
-    properties.add(propertyExtractor);
-  }
-  
+    @Override
+    public <S, T> ClassMapper<S, T> build(Class<S> sourceClass, Class<T> targetClass) {
+        return new ClassMapperImpl<S, T>(valueProcessorFactory, constructorArguments, properties, sourceClass, targetClass);
+    }
+
+    public void addConstructorArgumentExtractor(ConstructorArgumentExtractor constructorArgumentMapperBuilder) {
+        constructorArguments.add(constructorArgumentMapperBuilder);
+    }
+
+    public void addPropertyExtactor(PropertyExtractor propertyExtractor) {
+        properties.add(propertyExtractor);
+    }
+
 }
