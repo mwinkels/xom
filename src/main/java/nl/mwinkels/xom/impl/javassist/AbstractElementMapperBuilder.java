@@ -15,11 +15,11 @@ import javassist.Modifier;
 import javassist.NotFoundException;
 
 import nl.mwinkels.xom.impl.ConverterRegistry;
-import org.apache.commons.lang.StringUtils;
 
 import nl.mwinkels.xom.conversion.Converter;
 import nl.mwinkels.xom.impl.ClassMapper;
 import nl.mwinkels.xom.impl.ClassMapperRegistry;
+import org.apache.commons.lang3.StringUtils;
 
 @SuppressWarnings("rawtypes")
 abstract class AbstractElementMapperBuilder {
@@ -133,14 +133,14 @@ abstract class AbstractElementMapperBuilder {
   
   protected void prepareInvokeConverter(MapperBuilderContext context) {
     if (hasConverter()) {
-      context.loadField(getConverterFieldName(), "Lcom/mwinkels/xom/conversion/Converter;");
+      context.loadField(getConverterFieldName(), "Lnl/mwinkels/xom/conversion/Converter;");
     }
   }
   
   protected void invokeConverter(MapperBuilderContext context, CtClass targetType) {
     if (hasConverter()) {
       try {
-        context.invokeTransformMethod("Converter", "convert", targetType);
+        context.invokeTransformMethod("nl.mwinkels.xom.conversion.Converter", "convert", targetType);
       } catch (NotFoundException e) {
         throw new AssertionError(e);
       }
@@ -182,14 +182,14 @@ abstract class AbstractElementMapperBuilder {
   
   protected void prepareInvokeMapper(MapperBuilderContext context) {
     if (hasMapper()) {
-      context.loadField(getMapperFieldName(), "Lcom/mwinkels/xom/impl/ClassMapper;");
+      context.loadField(getMapperFieldName(), "Lnl/mwinkels/xom/impl/ClassMapper;");
     }
   }
 
   protected void invokeMapper(MapperBuilderContext context, CtClass targetType) {
     if (hasMapper()) {
       try {
-        context.invokeTransformMethod("ClassMapper", "map", targetType);
+        context.invokeTransformMethod("nl.mwinkels.xom.impl.ClassMapper", "map", targetType);
       } catch (NotFoundException e) {
         throw new AssertionError(e);
       }

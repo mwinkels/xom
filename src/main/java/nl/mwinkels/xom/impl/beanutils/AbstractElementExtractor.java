@@ -4,7 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 
 import nl.mwinkels.xom.conversion.ConversionException;
 import org.apache.commons.beanutils.PropertyUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import nl.mwinkels.xom.MappingException;
 import nl.mwinkels.xom.conversion.Converter;

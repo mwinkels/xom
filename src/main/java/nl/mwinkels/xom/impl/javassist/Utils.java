@@ -18,11 +18,11 @@ public class Utils {
   
   public static final CtClass objectType = getExistingClass(classPool, "java.lang.Object");
   
-  public static final CtClass abstractMapperClass = getExistingClass(classPool, "AbstractClassMapper");
+  public static final CtClass abstractMapperClass = getExistingClass(classPool, "nl.mwinkels.xom.impl.AbstractClassMapper");
   
-  public static final CtClass converterInterface = getExistingClass(classPool, "Converter");
+  public static final CtClass converterInterface = getExistingClass(classPool, "nl.mwinkels.xom.conversion.Converter");
   
-  public static final CtClass classMapperInterface = getExistingClass(classPool, "ClassMapper");
+  public static final CtClass classMapperInterface = getExistingClass(classPool, "nl.mwinkels.xom.impl.ClassMapper");
 
 
 }

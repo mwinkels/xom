@@ -1,7 +1,7 @@
 package nl.mwinkels.xom.impl.beanutils.processors;
 
 import nl.mwinkels.xom.impl.ConverterRegistry;
-import org.apache.commons.lang.ClassUtils;
+import org.apache.commons.lang3.ClassUtils;
 
 import nl.mwinkels.xom.conversion.Converter;
 import nl.mwinkels.xom.impl.ClassMapper;

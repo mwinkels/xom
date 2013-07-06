@@ -9,7 +9,7 @@ import javassist.NotFoundException;
 
 import nl.mwinkels.xom.conversion.Converter;
 import nl.mwinkels.xom.impl.ConverterRegistry;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import nl.mwinkels.xom.impl.ClassMapperRegistry;
 
